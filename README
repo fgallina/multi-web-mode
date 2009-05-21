@@ -1,0 +1,86 @@
+This package contains multi-web-mode.
+
+0. Info
+
+   Author: Fabián Ezequiel Gallina
+   Contact: fgallina at caffeinegroup dot com dot ar
+   Project homepage: http://github.com/fgallina/multi-web-mode
+   Wiki: http://github.com/fgallina/multi-web-mode/wikis
+   My Blog: http://www.caffeinegroup.com.ar
+   Downloads page: http://github.com/fgallina/multi-web-mode/downloads
+
+1. Introduction
+
+   Multi Web Mode is a minor mode wich makes web editing in Emacs much
+   easier.
+
+   Basically what it does is select the appropiate major mode
+   automatically when you move the point and also calculates the
+   correct indentation of chunks according to the indentation of the
+   most relevant major mode.
+
+2. Requirements
+
+   You don't need any special libraries to run this package since it
+   includes already all the necessary major-modes and extras.
+
+   Regarding the version of Emacs, this package was tested successfully
+   with 22.1 and 23.0.60.
+
+3. Installation
+
+   To install Multi Web Mode just put
+   (load "<path-to-multiweb-mode>/load.el") in your .emacs file and
+   you are done.
+
+   Restart Emacs or use M-x load-file ~/.emacs.
+
+4. Usage
+
+   Multi Web Mode binds the following keystrokes:
+
+   [12] : Sets the major mode to the correct one according to the
+   chunk where the point is located.
+
+   [tab] : Is bound to `mweb-indent'.
+
+   [backtab] : Deletes indentation, useful when magic indentation
+   `mweb-submodes-magic-indent' is nil. It deletes the number of spaces
+   defined in `mweb-default-submode-indent-offset'.
+
+   [M-TAB] : Calls nxml-complete.
+
+5. Included packages
+
+   These are third party packages which are called by
+   multi-web-mode.el. See the license terms on the top of the files.
+
+   Major modes can be found on the `major-mode' subdirectory of the
+   package, the rest is on the `extras' one.
+
+   * php-mode.el: PHP major mode modified by Lennart Borgman for
+     nxhtml.
+
+   * espresso.el: Amazing Javascript mode with builtin support for
+     various frameworks.
+
+   * hexcolour.el: Hexadecimal color fontification in buffer, useful
+     for css-mode.
+
+   * fixme-mode.el: Highlights FIXME, TODO, and other warnings in
+     source code and allows fast navigation through them.
+
+   * tabkey2-mode.el: Call the command you want using tab.
+
+6. Bug Reports
+
+   If you find a bug please report it to:
+   fgallina at caffeinegroup dot com dot ar
+
+7. License
+
+   multi-web-mode.el and load.el is free software under the GPL v3,
+   see LICENSE file for details.
+
+   For other files included in the package check their licenses in the
+   top of the files.
