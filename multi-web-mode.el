@@ -140,13 +140,19 @@ defined in `mweb-default-submode-indent-offset'."
   "Returns the point of the closest chunk of the element of the
 mweb-tags alist passed or nil if the chunk is not found"
   (let ((first-close-point 0)
-        (first-open-point 0))
-    ;; check where is the closest open tag
+        (first-open-point 0)
+        (open-tag (elt tags 0))
+        (close-tag (elt tags 1)))
+    ;; check where is the closest open tag or if we are looking at the
+    ;; tag itself
     (save-excursion
-      (setq first-open-point (re-search-backward (elt tags 0) nil t)))
+      (setq first-open-point
+            (if (looking-at open-tag)
+                (point)
+              (re-search-backward open-tag nil t))))
     ;; check where is closest close tag
     (save-excursion
-      (setq first-close-point (re-search-backward (elt tags 1) nil t)))
+      (setq first-close-point (re-search-backward close-tag nil t)))
     ;; check if we are inside a chunk
     (if (equal first-open-point nil)
         nil
@@ -218,27 +224,14 @@ indent all the previous line of the chunk as well. This is done
 because this way the relative position is calculated more
 acurately."
   (interactive "*")
-  (when multi-web-mode
     (if (not (equal major-mode mweb-default-major-mode))
-        (if mweb-submodes-magic-indent
-            (if (not (equal (mweb-get-current-line-contents) ""))
-                (if (mweb-check-for-html)
-                    (mweb-submodes-indent-line)
-                  (indent-according-to-mode))
-              ;; else
-              (let ((indentation))
-                (save-excursion
-                  (mweb-forward-nonblank-line -1)
-                  (setq indentation (current-indentation)))
-                (delete-horizontal-space)
-                (indent-to indentation)))
-          ;; else
-          (save-excursion
-            (beginning-of-line)
-            (indent-to mweb-default-submode-indent-offset)))
-      ;; else
-      (progn
-        (indent-according-to-mode)))))
+        (when mweb-submodes-magic-indent
+          (if (mweb-check-for-html)
+              (mweb-submodes-indent-line)
+            (indent-according-to-mode)))
+      (indent-according-to-mode))
+    (when (equal (mweb-get-current-line-contents) "")
+      (back-to-indentation)))
 
 
 (defun mweb-indent-line-backward ()
@@ -388,9 +381,9 @@ it searches backwards."
 
 (defun mweb-post-command-hook ()
   "The function which is appended to the `post-command-hook'"
-  ;; FIXME improve post-command-hook-handling
   (if multi-web-mode
-      (mweb-funcall-appropiate-major-mode)
+      (when (not (region-active-p))
+        (mweb-funcall-appropiate-major-mode))
     (remove-hook 'post-command-hook 'web-post-command-hook)))
 
 
