@@ -171,9 +171,11 @@ mweb-tags alist passed or nil if the chunk is not found"
         (current-mode-close-tagp)
         (chunk-open-tag-line-pos)
         (chunk-close-tag-line-pos)
+        (current-line (line-number-at-pos))
         (current-linep (save-excursion
                          (beginning-of-line)
-                         (point-marker))))
+                         (point-marker)))
+        (first-nonblank-line))
     (save-excursion
       (mweb-goto-current-mode-close-tag)
       (setq chunk-close-tag-line-pos (line-number-at-pos))
@@ -182,23 +184,39 @@ mweb-tags alist passed or nil if the chunk is not found"
       (setq chunk-open-tag-line-pos (line-number-at-pos))
       (setq current-mode-open-tagp (point-marker))
       (when (not (equal chunk-open-tag-line-pos chunk-close-tag-line-pos))
+        ;; Calculate the relative chunk indentation
         (mweb-forward-nonblank-line -1)
+        (mweb-funcall-appropiate-major-mode)
         (setq extra-indentation (mweb-calculate-correct-indentation))
+        ;; Delete the open tag indentation
         (goto-char current-mode-open-tagp)
         (beginning-of-line)
         (delete-horizontal-space)
-        (mweb-forward-nonblank-line 1)
+        ;; Get the first nonblank line
+        (save-excursion
+          (mweb-forward-nonblank-line 1)
+          (setq first-nonblank-line (line-number-at-pos)))
+        ;; Go to the correct first line
+        (if (< current-line first-nonblank-line)
+            (goto-line current-line)
+          (goto-line first-nonblank-line))
+        ;; call chunk major-mode and indent using the mode's rules
         (mweb-funcall-appropiate-major-mode)
         (while (< (point) current-linep)
           (indent-according-to-mode)
           (forward-line 1))
         (indent-according-to-mode)
+        ;; Go to the correct first line
         (goto-char current-mode-open-tagp)
-        (mweb-forward-nonblank-line 1)
+        (if (< current-line first-nonblank-line)
+            (goto-line current-line)
+          (goto-line first-nonblank-line))
+        ;; add the additional indentation to all the chunk's lines
         (while (< (point) current-linep)
           (indent-to (+ extra-indentation mweb-submode-indent-offset))
           (forward-line 1))
         (indent-to (+ extra-indentation  mweb-submode-indent-offset))
+        ;; fix the open tag and close tag indentation
         (goto-char current-mode-open-tagp)
         (beginning-of-line)
         (indent-to extra-indentation)
