@@ -48,6 +48,9 @@
 (defvar mweb-mode-hook nil
   "Hooks to run when multi-web-mode is initialized")
 
+(defvar mweb-extra-indentation 0
+  "Extra indentation for chunks, automatically calculated when
+  the major mode has changed")
 
 (defcustom mweb-default-major-mode 'nxml-mode
   "Default major mode when editing"
@@ -164,66 +167,127 @@ mweb-tags alist passed or nil if the chunk is not found"
           nil)))))
 
 
-(defun mweb-submodes-indent-line ()
-  "Function to use when indenting a submode line"
-  (let ((extra-indentation)
-        (current-mode-open-tagp)
-        (current-mode-close-tagp)
-        (chunk-open-tag-line-pos)
-        (chunk-close-tag-line-pos)
-        (current-line (line-number-at-pos))
-        (current-linep (save-excursion
-                         (beginning-of-line)
-                         (point-marker)))
-        (first-nonblank-line))
+;; (defun mweb-submode-indent-line ()
+;;   "Function to use when indenting a submode line"
+;;   (let ((extra-indentation)
+;;         (chunk-open-tag-line-pos)
+;;         (chunk-close-tag-line-pos)
+;;         (subchunk-open-tag-line-pos -1)
+;;         (subchunk-close-tag-line-pos -1)
+;;         (submajor-mode)
+;;         (current-line (line-number-at-pos))
+;;         (current-linep (save-excursion
+;;                          (beginning-of-line)
+;;                          (point-marker)))
+;;         (first-nonblank-line))
+;;     (save-excursion
+;;       (mweb-goto-current-mode-close-tag)
+;;       (setq chunk-close-tag-line-pos (line-number-at-pos))
+;;       (mweb-goto-current-mode-open-tag)
+;;       (setq chunk-open-tag-line-pos (line-number-at-pos))
+;;       (when (not (equal chunk-open-tag-line-pos chunk-close-tag-line-pos))
+;;         ;; Calculate the relative chunk indentation
+;;         (forward-line -1)
+;;         (mweb-funcall-appropiate-major-mode)
+;;         (setq extra-indentation (mweb-calculate-indentation))
+;;         ;; Delete the open tag indentation
+;;         (goto-line chunk-open-tag-line-pos)
+;;         (delete-horizontal-space)
+;;         ;; Get the first nonblank line
+;;         (save-excursion
+;;           (mweb-forward-nonblank-line 1)
+;;           (setq first-nonblank-line (line-number-at-pos)))
+;;         ;; Go to the correct first line
+;;         (if (< current-line first-nonblank-line)
+;;             (goto-line current-line)
+;;           (goto-line first-nonblank-line))
+;;         ;; call chunk major-mode and indent using the mode's rules
+;;         (mweb-funcall-appropiate-major-mode)
+;;         (setq submajor-mode major-mode)
+;;         (while (<= (line-number-at-pos) current-line)
+;;           (when (mweb-looking-at-open-tag)
+;;               ;; FIXME esto hace cualquiera
+;;             (back-to-indentation)
+;;             (mweb-funcall-appropiate-major-mode)
+
+;;             (save-excursion
+;;               (mweb-goto-current-mode-close-tag)
+;;               (setq subchunk-close-tag-line-pos (line-number-at-pos)))
+;;             (save-excursion
+;;               (mweb-goto-current-mode-open-tag)
+;;               (setq subchunk-open-tag-line-pos (line-number-at-pos)))
+;;             (delete-horizontal-space)
+;;             (if (not (equal subchunk-open-tag-line-pos subchunk-close-tag-line-pos))
+;;                 (progn
+;;                   (while (< (line-number-at-pos) subchunk-close-tag-line-pos)
+;;                     (forward-line 1)
+;;                     (delete-horizontal-space)
+;;                     (indent-to mweb-submode-indent-offset))
+;;                   (delete-horizontal-space))
+;;               (forward-line 1)))
+;;           (indent-according-to-mode)
+;;           (forward-line 1))
+;;         (forward-line -1)
+;;         ;; Go to the correct first line
+;;         (goto-line chunk-open-tag-line-pos)
+;;         (if (< current-line first-nonblank-line)
+;;             (goto-line current-line)
+;;           (goto-line first-nonblank-line))
+;;         ;; add the additional indentation to all the chunk's lines
+;;         (while (<= (line-number-at-pos) current-line)
+;;           (indent-to (+ extra-indentation mweb-submode-indent-offset))
+;;           (forward-line 1))
+;;         (forward-line -1)
+;;         ;; fix the open tag and close tag indentation
+;;         (goto-line chunk-open-tag-line-pos)
+;;         (indent-to extra-indentation)
+;;         (goto-line chunk-close-tag-line-pos)
+;;         (delete-horizontal-space)
+;;         (indent-to extra-indentation)))))
+
+
+(defun mweb-update-extra-indentation ()
+  "The function which is appended to the `post-command-hook'"
+  (when (and (mweb-funcall-appropiate-major-mode)
+             (not (equal major-mode mweb-default-major-mode)))
     (save-excursion
-      (mweb-goto-current-mode-close-tag)
-      (setq chunk-close-tag-line-pos (line-number-at-pos))
-      (setq current-mode-close-tagp (point-marker))
       (mweb-goto-current-mode-open-tag)
-      (setq chunk-open-tag-line-pos (line-number-at-pos))
-      (setq current-mode-open-tagp (point-marker))
-      (when (not (equal chunk-open-tag-line-pos chunk-close-tag-line-pos))
-        ;; Calculate the relative chunk indentation
-        (mweb-forward-nonblank-line -1)
-        (mweb-funcall-appropiate-major-mode)
-        (setq extra-indentation (mweb-calculate-correct-indentation))
-        ;; Delete the open tag indentation
-        (goto-char current-mode-open-tagp)
-        (beginning-of-line)
-        (delete-horizontal-space)
-        ;; Get the first nonblank line
-        (save-excursion
-          (mweb-forward-nonblank-line 1)
-          (setq first-nonblank-line (line-number-at-pos)))
-        ;; Go to the correct first line
-        (if (< current-line first-nonblank-line)
-            (goto-line current-line)
-          (goto-line first-nonblank-line))
-        ;; call chunk major-mode and indent using the mode's rules
-        (mweb-funcall-appropiate-major-mode)
-        (while (< (point) current-linep)
-          (indent-according-to-mode)
-          (forward-line 1))
-        (indent-according-to-mode)
-        ;; Go to the correct first line
-        (goto-char current-mode-open-tagp)
-        (if (< current-line first-nonblank-line)
-            (goto-line current-line)
-          (goto-line first-nonblank-line))
-        ;; add the additional indentation to all the chunk's lines
-        (while (< (point) current-linep)
-          (indent-to (+ extra-indentation mweb-submode-indent-offset))
-          (forward-line 1))
-        (indent-to (+ extra-indentation  mweb-submode-indent-offset))
-        ;; fix the open tag and close tag indentation
-        (goto-char current-mode-open-tagp)
-        (beginning-of-line)
-        (indent-to extra-indentation)
-        (goto-char current-mode-close-tagp)
-        (beginning-of-line)
-        (delete-horizontal-space)
-        (indent-to extra-indentation)))))
+      (forward-line -1)
+      (mweb-funcall-appropiate-major-mode)
+      (setq mweb-extra-indentation (mweb-calculate-indentation)))
+    (mweb-funcall-appropiate-major-mode))
+  (when (equal major-mode mweb-default-major-mode)
+    (setq mweb-extra-indentation 0)))
+
+
+(defun mweb-submode-indent-line ()
+  "Function to use when indenting a submode line"
+  (interactive)
+  (mweb-funcall-appropiate-major-mode)
+  (if (not (mweb-looking-at-open-tag))
+      (if (not (mweb-looking-at-close-tag))
+          (save-excursion
+            (beginning-of-line)
+            (delete-horizontal-space)
+            (indent-according-to-mode)
+            (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset)))
+        (let ((open-tag-indentation 0))
+          (save-excursion
+            (mweb-goto-current-mode-open-tag)
+            (setq open-tag-indentation (current-indentation)))
+          (beginning-of-line)
+          (delete-horizontal-space)
+          (indent-to open-tag-indentation)))
+    (progn
+      (beginning-of-line)
+      (delete-horizontal-space)
+      (insert "a")
+      (delete-horizontal-space)
+      (beginning-of-line)
+      (mweb-update-extra-indentation)
+      (indent-according-to-mode)
+      (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))
+      (delete-char 1))))
 
 
 (defun mweb-indent-line-forward ()
@@ -245,7 +309,7 @@ acurately."
     (if (not (equal major-mode mweb-default-major-mode))
         (when mweb-submodes-magic-indent
           (if (mweb-check-for-html)
-              (mweb-submodes-indent-line)
+              (mweb-submode-indent-line)
             (indent-according-to-mode)))
       (indent-according-to-mode))
     (when (equal (mweb-get-current-line-contents) "")
@@ -277,43 +341,41 @@ It follows the same filosophy than `mweb-indent-line-forward'
 because that function is what is used to indent the chunks
 which are not for the default major mode."
   (interactive "r")
-  (let ((is-mode-changed)
-        (prev-indent ""))
+  (let ((line-end))
     (save-excursion
       (goto-char end)
-      (setq end (point-marker))
+      (setq line-end (line-number-at-pos)))
+    (save-excursion
       (goto-char start)
-      (or (bolp) (beginning-of-line))
-      (while (< (point) end)
-        (setq is-mode-changed (mweb-funcall-appropiate-major-mode))
-        ;; check if the major mode is the default
-        (if (equal major-mode mweb-default-major-mode)
-            (indent-according-to-mode)
-          (progn
-            (or (mweb-goto-current-mode-close-tag)
-                (end-of-buffer))
-            (save-excursion
-              (mweb-forward-nonblank-line -1)
-              (mweb-indent-line-forward))))
-        (forward-line 1))
-      (mweb-funcall-appropiate-major-mode))))
+      (beginning-of-line)
+      (mweb-update-extra-indentation)
+      (while (< (line-number-at-pos) line-end)
+        (mweb-update-extra-indentation)
+        (mweb-indent-line-forward)
+        (forward-line 1)))))
 
 
-(defun mweb-calculate-correct-indentation ()
-  "Helper used to calculate the correct indentation in the
-default major mode"
+(defun mweb-calculate-indentation ()
+  "Helper used to calculate the correct indentation taking into
+account the previous submode"
   (interactive)
-  (let ((indentation 0))
+  (let ((indentation 0)
+        (eol))
     (save-excursion
       (mweb-funcall-appropiate-major-mode)
       (end-of-line)
       (insert "\n")
       (insert "a")
-      (indent-for-tab-command)
+      (if (equal major-mode mweb-default-major-mode)
+          (indent-according-to-mode)
+        (mweb-submode-indent-line))
       (setq indentation (current-indentation))
+      (end-of-line)
+      (setq eol (point-marker))
       (beginning-of-line)
-      (kill-line)
+      (delete-region (point-marker) eol)
       (delete-backward-char 1))
+    (mweb-funcall-appropiate-major-mode)
     indentation))
 
 
@@ -326,25 +388,7 @@ calls `mweb-indent-line-forward`"
     (mweb-indent-line-forward)))
 
 
-(defun mweb-goto-current-mode-close-tag ()
-  "Moves the cursor to the close tag of the current chunk"
-  (interactive)
-  (let ((index 0)
-        (found nil)
-        (tag)
-        (result nil))
-    (while (and (< index (length mweb-tags))
-                (not found))
-      (setq tag (elt mweb-tags index))
-      (when (or (equal (elt tag 2) major-mode)
-                (equal major-mode mweb-default-major-mode))
-        (setq found t)
-        (setq result (re-search-forward (elt tag 1) nil t)))
-      (setq index (+ 1 index)))
-    result))
-
-
-(defun mweb-goto-current-mode-open-tag ()
+(defun mweb-get-current-mode-open-tag ()
   "Moves the cursor to the open tag of the current chunk"
   (interactive)
   (let ((index 0)
@@ -357,9 +401,47 @@ calls `mweb-indent-line-forward`"
       (when (or (equal (elt tag 2) major-mode)
                 (equal major-mode mweb-default-major-mode))
         (setq found t)
-        (setq result (re-search-backward (elt tag 0) nil t)))
+        (save-excursion
+          (if (looking-at (elt tag 0))
+              (progn
+                (back-to-indentation)
+                (setq result (point-marker)))
+            (setq result (re-search-backward (elt tag 0) nil t)))))
       (setq index (+ 1 index)))
     result))
+
+
+(defun mweb-get-current-mode-close-tag ()
+  "Moves the cursor to the close tag of the current chunk"
+  (interactive)
+  (let ((index 0)
+        (found nil)
+        (tag)
+        (result nil))
+    (while (and (< index (length mweb-tags))
+                (not found))
+      (setq tag (elt mweb-tags index))
+      (when (or (equal (elt tag 2) major-mode)
+                (equal major-mode mweb-default-major-mode))
+        (setq found t)
+        (save-excursion
+          (setq result (re-search-forward (elt tag 1) nil t))))
+      (setq index (+ 1 index)))
+    result))
+
+
+(defun mweb-goto-current-mode-close-tag ()
+  (interactive)
+  (let ((tag-point (mweb-get-current-mode-close-tag)))
+    (when tag-point
+      (goto-char tag-point))))
+
+
+(defun mweb-goto-current-mode-open-tag ()
+  (interactive)
+  (let ((tag-point (mweb-get-current-mode-open-tag)))
+    (when tag-point
+      (goto-char tag-point))))
 
 
 (defun mweb-forward-nonblank-line (&optional number)
@@ -397,13 +479,80 @@ it searches backwards."
     contents))
 
 
+(defun mweb-looking-at-tag ()
+  "returns t if pointer is looking at an open or close tag"
+  (let ((index 0)
+        (looking nil)
+        (open-tag)
+        (close-tag)
+        (result nil))
+    (save-excursion
+      (back-to-indentation)
+      (while (and (< index (length mweb-tags))
+                  (not looking))
+        (setq open-tag (elt (elt mweb-tags index) 0))
+        (setq close-tag (elt (elt mweb-tags index) 1))
+        (when (or (looking-at open-tag)
+                  (looking-at close-tag))
+          (setq looking t))
+        (setq index (+ 1 index))))
+    looking))
+
+
+(defun mweb-looking-at-open-tag ()
+  "returns t if pointer is looking at an open tag"
+  (let ((index 0)
+        (looking nil)
+        (open-tag)
+        (result nil))
+    (save-excursion
+      (back-to-indentation)
+      (mweb-funcall-appropiate-major-mode)
+      (while (and (< index (length mweb-tags))
+                  (not looking))
+        (setq open-tag (elt (elt mweb-tags index) 0))
+        (when (looking-at open-tag)
+          (setq looking t))
+        (setq index (+ 1 index))))
+    looking))
+
+
+(defun mweb-looking-at-close-tag ()
+  "returns t if pointer is looking at a close tag"
+  (let ((index 0)
+        (looking nil)
+        (close-tag)
+        (result nil))
+    (save-excursion
+      (back-to-indentation)
+      (mweb-funcall-appropiate-major-mode)
+      (while (and (< index (length mweb-tags))
+                  (not looking))
+        (setq close-tag (elt (elt mweb-tags index) 1))
+        (when (looking-at close-tag)
+          (setq looking t))
+        (setq index (+ 1 index))))
+    looking))
+
+
 (defun mweb-post-command-hook ()
   "The function which is appended to the `post-command-hook'"
   (if multi-web-mode
       (when (not (region-active-p))
-        (mweb-funcall-appropiate-major-mode))
-    (remove-hook 'post-command-hook 'web-post-command-hook)))
+        (when (and (mweb-funcall-appropiate-major-mode)
+                   (not (equal major-mode mweb-default-major-mode)))
+          (save-excursion
+            (mweb-goto-current-mode-open-tag)
+            (forward-line -1)
+            (setq mweb-extra-indentation (mweb-calculate-indentation)))
+          (mweb-funcall-appropiate-major-mode)))))
 
+
+(defun mweb-post-command-hook ()
+  "The function which is appended to the `post-command-hook'"
+  (when (and multi-web-mode
+             (not (region-active-p)))
+    (mweb-update-extra-indentation)))
 
 (defun mweb-check-current-mode ()
   "Checks if the current major mode is in the `mweb-tags' alist"
@@ -438,16 +587,16 @@ it searches backwards."
 
 
 (defun mweb-enable ()
-  "This method initializes the minor mode"
-  (remove-hook 'post-command-hook 'mweb-post-command-hook)
+  "This function initializes the minor mode"
   (add-hook 'post-command-hook 'mweb-post-command-hook)
   (use-local-map mweb-mode-map)
   (run-hooks 'mweb-mode-hook))
 
 
 (defun mweb-disable ()
-  "This method takes care to disable the minor mode"
-  (remove-hook 'post-command-hook 'mweb-post-command-hook))
+  "This function takes care to disable the minor mode"
+  ;; (remove-hook 'post-command-hook 'mweb-post-command-hook))
+)
 
 
 ;;;###autoload
