@@ -266,15 +266,14 @@ which are not for the default major mode."
   (let ((line-end))
     (save-excursion
       (goto-char end)
-      (setq line-end (line-number-at-pos)))
-    (save-excursion
+      (setq end (point-marker))
       (goto-char start)
-      (beginning-of-line)
-      (mweb-update-extra-indentation)
-      (while (< (line-number-at-pos) line-end)
+      (or (bolp) (forward-line 1))
+      (while (< (point) end)
         (mweb-update-extra-indentation)
         (mweb-indent-line-forward)
-        (forward-line 1)))))
+        (forward-line 1))
+      (move-marker end nil))))
 
 
 (defun mweb-calculate-indentation ()
