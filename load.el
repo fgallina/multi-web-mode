@@ -72,8 +72,9 @@
         (append '(("\\.php$" . php-mode)) auto-mode-alist))
   (autoload 'php-mode "php-mode" nil t)
   ;; espresso (javascript-mode)
-  (add-to-list 'auto-mode-alist '("\\.js\\'" . espresso-mode))
-  (autoload 'espresso-mode "espresso" nil t)
+  (autoload #'espresso-mode "espresso" "Start espresso-mode" t)
+  (add-to-list 'auto-mode-alist '("\\.js$" . espresso-mode))
+  (add-to-list 'auto-mode-alist '("\\.json$" . espresso-mode))
   ;; hexcolour (hexadecimal color highlighting for css mode)
   (require 'hexcolour)
   (add-hook 'css-mode-hook
