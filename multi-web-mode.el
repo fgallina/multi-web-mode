@@ -48,9 +48,11 @@
 (defvar mweb-mode-hook nil
   "Hooks to run when multi-web-mode is initialized")
 
+
 (defvar mweb-extra-indentation 0
   "Extra indentation for chunks, automatically calculated when
   the major mode has changed")
+
 
 (defcustom mweb-default-major-mode 'nxml-mode
   "Default major mode when editing"
@@ -475,6 +477,7 @@ it searches backwards."
              (not (region-active-p)))
     (mweb-update-extra-indentation)))
 
+
 (defun mweb-check-current-mode ()
   "Checks if the current major mode is in the `mweb-tags' alist"
   (interactive)
@@ -515,9 +518,7 @@ it searches backwards."
 
 
 (defun mweb-disable ()
-  "This function takes care to disable the minor mode"
-  ;; (remove-hook 'post-command-hook 'mweb-post-command-hook))
-)
+  "This function takes care to disable the minor mode")
 
 
 ;;;###autoload
