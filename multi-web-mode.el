@@ -460,19 +460,6 @@ it searches backwards."
 
 (defun mweb-post-command-hook ()
   "The function which is appended to the `post-command-hook'"
-  (if multi-web-mode
-      (when (not (region-active-p))
-        (when (and (mweb-funcall-appropiate-major-mode)
-                   (not (equal major-mode mweb-default-major-mode)))
-          (save-excursion
-            (mweb-goto-current-mode-open-tag)
-            (forward-line -1)
-            (setq mweb-extra-indentation (mweb-calculate-indentation)))
-          (mweb-funcall-appropiate-major-mode)))))
-
-
-(defun mweb-post-command-hook ()
-  "The function which is appended to the `post-command-hook'"
   (when (and multi-web-mode
              (not (region-active-p)))
     (mweb-update-extra-indentation)))
