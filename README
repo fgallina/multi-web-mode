@@ -19,6 +19,16 @@ This package contains multi-web-mode.
    correct indentation of chunks according to the indentation of the
    most relevant major mode.
 
+   Currently it is more focused to work on buffers which contain html,
+   css, javascript and php, but adding other modes is really simple:
+   you just need to add your own mode to the `mweb-tags'. You can do
+   that by using M-x customize-group RET multi-web-mode and looking
+   for the `mweb-tags' variable.
+
+   If you wish a major-mode or extra to be included in the default
+   package please let me know at:
+   fgallina at caffeinegroup dot com dot ar
+
 2. Requirements
 
    You don't need any special libraries to run this package since it
@@ -59,18 +69,27 @@ This package contains multi-web-mode.
    package, the rest is on the `extras' one.
 
    * php-mode.el: PHP major mode modified by Lennart Borgman for
-     nxhtml.
+     nxhtml. [http://php-mode.sourceforge.net/]
 
    * espresso.el: Amazing Javascript mode with builtin support for
-     various frameworks.
+     various frameworks. [http://www.nongnu.org/espresso/]
+
+   * moz.el: MozRepl lets you program Firefox and other Mozilla-based
+     applications from the inside; and this great minor mode lets
+     you communicate to MozRepl directly from your Emacs.
+     [http://wiki.github.com/bard/mozrepl]
 
    * hexcolour.el: Hexadecimal color fontification in buffer, useful
-     for css-mode.
+     for css-mode. Minor mode created from the shared code at
+     [http://www.emacswiki.org/emacs/HexColour]
 
    * fixme-mode.el: Highlights FIXME, TODO, and other warnings in
      source code and allows fast navigation through them.
+     [http://www.emacswiki.org/emacs/FixmeMode]
 
-   * tabkey2-mode.el: Call the command you want using tab.
+   * tabkey2-mode.el: Call the command you want using tab. Extracted
+     from the great nxhtml package (which I used a lot before
+     multi-web) [http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html]
 
 6. Bug Reports
 
