@@ -51,7 +51,7 @@
 
 (defvar mweb-extra-indentation 0
   "Extra indentation for chunks, automatically calculated when
-  the major mode has changed")
+the major mode has changed")
 
 
 (defcustom mweb-default-major-mode 'nxml-mode
@@ -110,17 +110,20 @@ defined in `mweb-default-submode-indent-offset'."
         (found nil))
     (save-excursion
       (mweb-goto-current-mode-open-tag)
-      (when (re-search-backward "^\\s-*</?\\sw+.*?>" nil t)
+      (when (re-search-backward html-tag-re nil t)
         (setq found t)))
     (save-excursion
       (when (mweb-goto-current-mode-close-tag)
-        (when (re-search-forward "^\\s-*</?\\sw+.*?>" nil t)
+        (when (re-search-forward html-tag-re nil t)
           (setq found t))))
     found))
 
 
 (defun mweb-funcall-appropiate-major-mode ()
-  "Calls the appropiate major mode for the pointed chunk"
+  "Calls the appropiate major mode for the pointed chunk. If the
+current major-mode is the correct one it doesn't funcall the
+major mode and returns nil, otherwise changes the major-mode and
+returns t"
   (interactive)
   ;; closes-chunk is a list of the form (point major-mode)
   (let ((closest-chunk-point 0)
@@ -142,8 +145,9 @@ defined in `mweb-default-submode-indent-offset'."
 
 
 (defun mweb-find-starting-chunk-point (tags)
-  "Returns the point of the closest chunk of the element of the
-mweb-tags alist passed or nil if the chunk is not found"
+  "Returns the point of the closest chunk for the `tags' argument
+which is one of the elements contained in the `mweb-tags'
+alist. If the chunk is not found then it returns nil."
   (let ((first-close-point 0)
         (first-open-point 0)
         (open-tag (elt tags 0))
@@ -219,22 +223,25 @@ chunks."
 the default major mode.
 
 In the case that the default major mode is beign used then it
-will fallback to the `indent-according-to-mode-command' function
-but if the current line's mode is not the default major mode then
-it will indent the line taking into account the relative position
-of the chunk in regards to the default major mode.
+will fallback to the `indent-according-to-mode-command' function.
 
-It is important to note that on a chunk which does not
-corresponds to the default major mode (ie: a php chunk) it will
-indent all the previous line of the chunk as well. This is done
-because this way the relative position is calculated more
-acurately."
+If the current line's mode is not the default major and
+`mweb-submodes-magic-indent' is t mode then it will indent the
+line taking into account the relative position of the chunk in
+regards to the default major mode. In case that
+`mweb-submodes-magic-indent' is nil it will indent the line
+according to the value of `mweb-default-submode-indent-offset'"
   (interactive "*")
     (if (not (equal major-mode mweb-default-major-mode))
-        (when mweb-submodes-magic-indent
-          (if (mweb-check-for-html)
-              (mweb-submode-indent-line)
-            (indent-according-to-mode)))
+        (if mweb-submodes-magic-indent
+            (if (mweb-check-for-html)
+                (mweb-submode-indent-line)
+              (indent-according-to-mode))
+          (let ((ci (current-indentation)))
+            (save-excursion
+              (beginning-of-line)
+              (delete-horizontal-space)
+              (indent-to (+ ci mweb-default-submode-indent-offset)))))
       (indent-according-to-mode))
     (when (equal (mweb-get-current-line-contents) "")
       (back-to-indentation)))
@@ -304,7 +311,7 @@ account the previous submode"
 
 (defun mweb-indent (&optional arg)
   "If a region is selected then calls `mweb-indent-region' else
-calls `mweb-indent-line-forward`"
+calls `mweb-indent-line-forward'"
   (interactive "P")
   (if (use-region-p)
       (mweb-indent-region (region-beginning) (region-end))
@@ -312,7 +319,7 @@ calls `mweb-indent-line-forward`"
 
 
 (defun mweb-get-current-mode-open-tag ()
-  "Moves the cursor to the open tag of the current chunk"
+  "Gets the point marker of current chunk's open tag"
   (interactive)
   (let ((index 0)
         (found nil)
@@ -335,7 +342,7 @@ calls `mweb-indent-line-forward`"
 
 
 (defun mweb-get-current-mode-close-tag ()
-  "Moves the cursor to the close tag of the current chunk"
+  "Gets the point marker of current chunk's close tag"
   (interactive)
   (let ((index 0)
         (found nil)
@@ -353,16 +360,18 @@ calls `mweb-indent-line-forward`"
     result))
 
 
-(defun mweb-goto-current-mode-close-tag ()
+(defun mweb-goto-current-mode-open-tag ()
+  "Moves the point to the open tag of the current chunk"
   (interactive)
-  (let ((tag-point (mweb-get-current-mode-close-tag)))
+  (let ((tag-point (mweb-get-current-mode-open-tag)))
     (when tag-point
       (goto-char tag-point))))
 
 
-(defun mweb-goto-current-mode-open-tag ()
+(defun mweb-goto-current-mode-close-tag ()
+  "Moves the point to the close tag of the current chunk"
   (interactive)
-  (let ((tag-point (mweb-get-current-mode-open-tag)))
+  (let ((tag-point (mweb-get-current-mode-close-tag)))
     (when tag-point
       (goto-char tag-point))))
 
@@ -385,7 +394,8 @@ it searches backwards."
 
 
 (defun mweb-get-current-line-contents ()
-  "Gets the contents of the current line without space chars"
+  "Gets the contents of the current line. It trims all space
+characters at the beginning and end of the line."
   (let ((start-point)
         (end-point)
         (contents))
@@ -403,7 +413,7 @@ it searches backwards."
 
 
 (defun mweb-looking-at-tag ()
-  "returns t if pointer is looking at an open or close tag"
+  "Returns t if pointer is looking at an open or close tag"
   (let ((index 0)
         (looking nil)
         (open-tag)
@@ -423,7 +433,7 @@ it searches backwards."
 
 
 (defun mweb-looking-at-open-tag ()
-  "returns t if pointer is looking at an open tag"
+  "Returns t if pointer is looking at an open tag"
   (let ((index 0)
         (looking nil)
         (open-tag)
@@ -441,7 +451,7 @@ it searches backwards."
 
 
 (defun mweb-looking-at-close-tag ()
-  "returns t if pointer is looking at a close tag"
+  "Returns t if pointer is looking at a close tag"
   (let ((index 0)
         (looking nil)
         (close-tag)
@@ -467,7 +477,6 @@ it searches backwards."
 
 (defun mweb-check-current-mode ()
   "Checks if the current major mode is in the `mweb-tags' alist"
-  (interactive)
   (let ((index 0)
         (found nil)
         (tag))
@@ -484,7 +493,6 @@ it searches backwards."
 (defun mweb-check-filename-extensions ()
   "Checks if the current buffer extension is in the
 `mweb-filename-extensions' list"
-  (interactive)
   (let ((index 0)
         (result nil)
         (found nil))
