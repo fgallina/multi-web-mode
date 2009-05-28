@@ -70,11 +70,8 @@ auto-activate"
 
 (defcustom mweb-tags
   '(("<\\?php\\|<\\?" "?>" php-mode)
-    ;; "<\\?php"
     ("<script +type=\"text/javascript\"[^>]*>" "</script>" espresso-mode)
-    ;; <script type=\"text/javascript\">
     ("<style +type=\"text/css\"[^>]*>" "</style>" css-mode))
-    ;; <style +type=\"text/css\"\\( +media=\"screen\"\\)?>
   "Tags enabled for multi-web-mode. This var is an alist on which
 each element has the form (\"open tag regex\" \"close tag
 regex\" major-mode"
