@@ -7,10 +7,10 @@
 ;; Author: Turadg Aleahmad, 1999-2004
 ;; Keywords: php languages oop
 ;; Created: 1999-05-17
-;; Modified: 2008-11-28 Fri
+;; Modified: 2008-11-04
 ;; X-URL:   http://php-mode.sourceforge.net/
 
-(defconst php-mode-version-number "1.5.0-nxhtml"
+(defconst php-mode-version-number "1.5.0"
   "PHP Mode version number.")
 
 ;;; License
@@ -70,17 +70,6 @@
 
 ;;; Changelog:
 
-;; 1.5.0-nxhtml-1.61 (Lennart Borgman)
-;;   Added php-mode-to-use.
-;;   Made underscore be part of identifiers.
-;;   Remove php-mode-to.
-;;   Make the indentation check only on current line.
-;;   Warn only once per session about indentation.
-;;   Tell if can't complete in `php-complete-function'.
-;;   Move back point after checking indentation in
-;;   `php-check-html-for-indentation'.
-;;   Add `c-at-vsemi-p-fn' etc after advice from Alan Mackenzie.
-;;
 ;; 1.5
 ;;   Support function keywords like public, private and the ampersand
 ;;   character for function-based commands.  Support abstract, final,
@@ -112,7 +101,6 @@
 
 ;;; Code:
 
-(require 'add-log)
 (require 'speedbar)
 (require 'font-lock)
 (require 'cc-mode)
@@ -151,24 +139,24 @@ Turning this on will open it whenever `php-mode' is loaded."
   :set (lambda (sym val)
          (set-default sym val)
          (when val
-             (speedbar 1)))
+           (speedbar 1)))
   :group 'php)
 
 (defvar php-imenu-generic-expression
- '(
-   ("Private Methods"
-    "^\\s-*\\(?:\\(?:abstract\\|final\\)\\s-+\\)?private\\s-+\\(?:static\\s-+\\)?function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1)
-   ("Protected Methods"
-    "^\\s-*\\(?:\\(?:abstract\\|final\\)\\s-+\\)?protected\\s-+\\(?:static\\s-+\\)?function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1)
-   ("Public Methods"
-    "^\\s-*\\(?:\\(?:abstract\\|final\\)\\s-+\\)?public\\s-+\\(?:static\\s-+\\)?function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1)
-   ("Classes"
-    "^\\s-*class\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*" 1)
-   ("All Functions"
-    "^\\s-*\\(?:\\(?:abstract\\|final\\|private\\|protected\\|public\\|static\\)\\s-+\\)*function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1)
-   )
- "Imenu generic expression for PHP Mode. See `imenu-generic-expression'."
- )
+  '(
+    ("Private Methods"
+     "^\\s-*\\(?:\\(?:abstract\\|final\\)\\s-+\\)?private\\s-+\\(?:static\\s-+\\)?function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1)
+    ("Protected Methods"
+     "^\\s-*\\(?:\\(?:abstract\\|final\\)\\s-+\\)?protected\\s-+\\(?:static\\s-+\\)?function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1)
+    ("Public Methods"
+     "^\\s-*\\(?:\\(?:abstract\\|final\\)\\s-+\\)?public\\s-+\\(?:static\\s-+\\)?function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1)
+    ("Classes"
+     "^\\s-*class\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*" 1)
+    ("All Functions"
+     "^\\s-*\\(?:\\(?:abstract\\|final\\|private\\|protected\\|public\\|static\\)\\s-+\\)*function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1)
+    )
+  "Imenu generic expression for PHP Mode.  See `imenu-generic-expression'."
+  )
 
 (defcustom php-manual-url "http://www.php.net/manual/en/"
   "URL at which to find PHP manual.
@@ -220,7 +208,7 @@ Turning this on will force PEAR rules on all PHP files."
   :type 'boolean
   :group 'php)
 
-(defconst php-mode-modified "2008-11-28 Fri"
+(defconst php-mode-modified "2008-11-04"
   "PHP Mode build date.")
 
 (defun php-mode-version ()
@@ -228,7 +216,7 @@ Turning this on will force PEAR rules on all PHP files."
   (interactive)
   (message "PHP mode %s of %s"
            php-mode-version-number php-mode-modified))
-
+
 (defconst php-beginning-of-defun-regexp
   "^\\s-*\\(?:\\(?:abstract\\|final\\|private\\|protected\\|public\\|static\\)\\s-+\\)*function\\s-+&?\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*("
   "Regular expression for a PHP function.")
@@ -251,7 +239,7 @@ Implements PHP version of `beginning-of-defun-function'."
         (if (eq opoint (point))
             (re-search-forward php-beginning-of-defun-regexp
                                nil 'noerror))
-	(setq arg (1+ arg))))))
+        (setq arg (1+ arg))))))
 
 (defun php-end-of-defun (&optional arg)
   "Move the end of the ARGth PHP function from point.
@@ -263,79 +251,23 @@ See `php-beginning-of-defun'."
 
 
 (defvar php-warned-bad-indent nil)
-;;(make-variable-buffer-local 'php-warned-bad-indent)
+(make-variable-buffer-local 'php-warned-bad-indent)
 
 ;; Do it but tell it is not good if html tags in buffer.
 (defun php-check-html-for-indentation ()
   (let ((html-tag-re "^\\s-*</?\\sw+.*?>")
         (here (point)))
-    (goto-char (line-beginning-position))
-    (if (or (when (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode)
-            ;; Fix-me: no idea how to check for mmm or multi-mode
-            (save-match-data
-              (not (or (re-search-forward html-tag-re (line-end-position) t)
-                       (re-search-backward html-tag-re (line-beginning-position) t)))))
-        (progn
-          (goto-char here)
-          t)
+    (if (not (or (re-search-forward html-tag-re (line-end-position) t)
+                 (re-search-backward html-tag-re (line-beginning-position) t)))
+        t
       (goto-char here)
       (setq php-warned-bad-indent t)
-      ;;(setq php-warned-bad-indent nil)
-      (let* ((known-multi-libs '(("mumamo" mumamo (lambda () (nxhtml-mumamo)))
-                                 ("mmm-mode" mmm-mode (lambda () (mmm-mode 1)))
-                                 ("multi-mode" multi-mode (lambda () (multi-mode 1)))))
-             (known-names (mapcar (lambda (lib) (car lib)) known-multi-libs))
-             (available-multi-libs (delq nil
-                                         (mapcar
-                                          (lambda (lib)
-                                            (when (locate-library (car lib)) lib))
-                                          known-multi-libs)))
-             (available-names (mapcar (lambda (lib) (car lib)) available-multi-libs))
-             (base-msg
-              (concat
-               "Indentation fails badly with mixed HTML/PHP in the HTML part in
-plaín `php-mode'.  To get indentation to work you must use an
-Emacs library that supports 'multiple major modes' in a buffer.
-Parts of the buffer will then be in `php-mode' and parts in for
-example `html-mode'.  Known such libraries are:\n\t"
-               (mapconcat 'identity known-names ", ")
-               "\n"
-               (if available-multi-libs
-                   (concat
-                    "You have these available in your `load-path':\n\t"
-                    (mapconcat 'identity available-names ", ")
-                    "\n\n"
-                    "Do you want to turn any of those on? ")
-                 "You do not have any of those in your `load-path'.")))
-             (is-using-multi
-              (catch 'is-using
-                (dolist (lib available-multi-libs)
-                  (when (and (boundp (cadr lib))
-                             (symbol-value (cadr lib)))
-                    (throw 'is-using t))))))
-        (unless is-using-multi
-          (if available-multi-libs
-              (if (not (y-or-n-p base-msg))
-                  (message "Did not do indentation, but you can try again now if you want")
-                (let* ((name
-                        (if (= 1 (length available-multi-libs))
-                            (car available-names)
-                          ;; Minibuffer window is more than one line, fix that first:
-                          (message "")
-                          (completing-read "Choose multiple major mode support library: "
-                                           available-names nil t
-                                           (car available-names)
-                                           '(available-names . 1)
-                                           )))
-                       (mode (when name
-                               (caddr (assoc name available-multi-libs)))))
-                  (when mode
-                    ;; Minibuffer window is more than one line, fix that first:
-                    (message "")
-                    (load name)
-                    (funcall mode))))
-            (lwarn 'php-indent :warning base-msg)))
-        nil))))
+      (lwarn 'php-indent :warning
+             "\n\t%s\n\t%s\n\t%s\n"
+             "Indentation fails badly with mixed HTML and PHP."
+             "Look for an Emacs Lisp library that supports \"multiple"
+             "major modes\" like mumamo, mmm-mode or multi-mode.")
+      nil)))
 
 (defun php-cautious-indent-region (start end &optional quiet)
   (if (or php-warned-bad-indent
@@ -346,13 +278,13 @@ example `html-mode'.  Known such libraries are:\n\t"
   (if (or php-warned-bad-indent
           (php-check-html-for-indentation))
       (funcall 'c-indent-line)))
-
+
 (defconst php-tags '("<?php" "?>" "<?" "<?="))
 (defconst php-tags-key (regexp-opt php-tags))
 
 (defconst php-block-stmt-1-kwds '("do" "else" "finally" "try"))
 (defconst php-block-stmt-2-kwds
-  '("for" "if" "while" "switch" "foreach" "elseif"  "catch all"))
+  '("for" "if" "while" "switch" "foreach" "elseif" "catch all"))
 
 (defconst php-block-stmt-1-key
   (regexp-opt php-block-stmt-1-kwds))
@@ -367,41 +299,6 @@ example `html-mode'.  Known such libraries are:\n\t"
    (c-lang-const c-symbol-key c)                ;; Class name.
    "\\(\\s-+extends\\s-+" (c-lang-const c-symbol-key c) "\\)?" ;; Name of superclass.
    "\\(\\s-+implements\\s-+[^{]+{\\)?")) ;; List of any adopted protocols.
-
-
-(defun php-c-at-vsemi-p (&optional pos)
-  "Return t on html lines (including php region border), otherwise nil.
-POS is a position on the line in question.
-
-This is was done due to the problem reported here:
-
-  URL `https://answers.launchpad.net/nxhtml/+question/43320'"
-  (setq pos (or pos (point)))
-  (let ((here (point))
-        ret)
-  (save-match-data
-    (goto-char pos)
-    (beginning-of-line)
-    (setq ret (looking-at
-               (rx
-                (or (seq
-                     bol
-                     (0+ space)
-                     "<"
-                     (in "a-z\\?"))
-                    (seq
-                     ;;(0+ anything)
-                     (0+ not-newline)
-                     (in "a-z\\?")
-                     ">"
-                     (0+ space)
-                     eol))))))
-  (goto-char here)
-  ret))
-
-(defun php-c-vsemi-status-unknown-p ()
-  "See `php-c-at-vsemi-p'."
-  )
 
 ;;;###autoload
 (define-derived-mode php-mode c-mode "PHP"
@@ -429,7 +326,7 @@ This is was done due to the problem reported here:
 
   ;; Specify that cc-mode recognize Javadoc comment style
   (set (make-local-variable 'c-doc-comment-style)
-    '((php-mode . javadoc)))
+       '((php-mode . javadoc)))
 
 ;;   (c-lang-defconst c-class-decl-kwds
 ;;     php php-class-decl-kwds)
@@ -439,15 +336,13 @@ This is was done due to the problem reported here:
   (setq font-lock-defaults
         '((php-font-lock-keywords-1
            php-font-lock-keywords-2
-               ;; Comment-out the next line if the font-coloring is too
-               ;; extreme/ugly for you.
+           ;; Comment-out the next line if the font-coloring is too
+           ;; extreme/ugly for you.
            php-font-lock-keywords-3)
           nil                               ; KEYWORDS-ONLY
           t                                 ; CASE-FOLD
           (("_" . "w"))                    ; SYNTAX-ALIST
           nil))                             ; SYNTAX-BEGIN
-  (modify-syntax-entry ?# "< b" php-mode-syntax-table)
-  ;;(modify-syntax-entry ?_ "w" php-mode-syntax-table)
 
   ;; Electric behaviour must be turned off, they do not work since
   ;; they can not find the correct syntax in embedded PHP.
@@ -484,11 +379,7 @@ This is was done due to the problem reported here:
   (setq indent-line-function 'php-cautious-indent-line)
   (setq indent-region-function 'php-cautious-indent-region)
   (setq c-special-indent-hook nil)
-  (setq c-at-vsemi-p-fn 'php-c-at-vsemi-p)
-  (setq c-vsemi-status-unknown-p 'php-c-vsemi-status-unknown-p)
 
-  (set (make-local-variable 'syntax-begin-function)
-       'c-beginning-of-syntax)
   (set (make-local-variable 'beginning-of-defun-function)
        'php-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function)
@@ -534,24 +425,23 @@ for \\[find-tag] (which see)."
         completion
         (php-functions (php-completion-table)))
     (if (not pattern) (message "Nothing to complete")
-        (if (not (search-backward pattern nil t))
-            (message "Can't complete here")
-          (setq beg (point))
-          (forward-char (length pattern))
-          (setq completion (try-completion pattern php-functions nil))
-          (cond ((eq completion t))
-                ((null completion)
-                 (message "Can't find completion for \"%s\"" pattern)
-                 (ding))
-                ((not (string= pattern completion))
-                 (delete-region beg (point))
-                 (insert completion))
-                (t
-                 (message "Making completion list...")
-                 (with-output-to-temp-buffer "*Completions*"
-                   (display-completion-list
-                    (all-completions pattern php-functions)))
-                 (message "Making completion list...%s" "done")))))))
+      (search-backward pattern)
+      (setq beg (point))
+      (forward-char (length pattern))
+      (setq completion (try-completion pattern php-functions nil))
+      (cond ((eq completion t))
+            ((null completion)
+             (message "Can't find completion for \"%s\"" pattern)
+             (ding))
+            ((not (string= pattern completion))
+             (delete-region beg (point))
+             (insert completion))
+            (t
+             (message "Making completion list...")
+             (with-output-to-temp-buffer "*Completions*"
+               (display-completion-list
+                (all-completions pattern php-functions)))
+             (message "Making completion list...%s" "done"))))))
 
 (defun php-completion-table ()
   "Build variable `php-completion-table' on demand.
@@ -681,12 +571,6 @@ current `tags-file-name'."
 (define-key php-mode-map
   '[(control .)]
   'php-show-arglist)
-
-;; Use the Emacs standard indentation binding. This may upset c-mode
-;; which does not follow this at the moment, but I see no better
-;; choice.
-(define-key php-mode-map [?\t] 'indent-for-tab-command)
-
 
 (defconst php-constants
   (eval-when-compile
@@ -1056,7 +940,7 @@ current `tags-file-name'."
   (eval-when-compile
     (regexp-opt
      ;; "class", "new" and "extends" get special treatment
-     ;; "case" and  "default" get special treatment elsewhere
+     ;; "case" and "default" get special treatment elsewhere
      '("and" "as" "break" "continue" "declare" "do" "echo" "else" "elseif"
        "endfor" "endforeach" "endif" "endswitch" "endwhile" "exit"
        "extends" "for" "foreach" "global" "if" "include" "include_once"
@@ -1082,7 +966,7 @@ current `tags-file-name'."
     (regexp-opt '("_GET" "_POST" "_COOKIE" "_SESSION" "_ENV" "GLOBALS"
                   "_SERVER" "_FILES" "_REQUEST")))
   "PHP superglobal variables.")
-
+
 ;; Set up font locking
 (defconst php-font-lock-keywords-1
   (list
