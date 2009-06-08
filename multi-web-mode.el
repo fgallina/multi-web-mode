@@ -61,7 +61,7 @@ the major mode has changed")
 
 
 (defcustom mweb-filename-extensions
-  '("php" "html" "ctp" "phtml" "php4" "php5")
+  '("php" "htm" "html" "ctp" "phtml" "php4" "php5")
   "Filename extensions on which multi-web-mode should
 auto-activate"
   :type '(list string)
@@ -220,7 +220,7 @@ chunks."
 the default major mode.
 
 In the case that the default major mode is beign used then it
-will fallback to the `indent-according-to-mode-command' function.
+will fallback to the \\[indent-according-to-mode-command] function.
 
 If the current line's mode is not the default major and
 `mweb-submodes-magic-indent' is t mode then it will indent the
@@ -265,7 +265,7 @@ It deletes the number of spaces defined in
   "Indents a region taking into account the relative position of
 the chunks within the buffer.
 
-It follows the same filosophy than `mweb-indent-line-forward'
+It follows the same filosophy than \\[mweb-indent-line-forward]
 because that function is what is used to indent the chunks
 which are not for the default major mode."
   (interactive "r")
@@ -307,8 +307,8 @@ account the previous submode"
 
 
 (defun mweb-indent (&optional arg)
-  "If a region is selected then calls `mweb-indent-region' else
-calls `mweb-indent-line-forward'"
+  "If a region is selected then calls \\[mweb-indent-region] else
+calls \\[mweb-indent-line-forward]"
   (interactive "P")
   (if (use-region-p)
       (mweb-indent-region (region-beginning) (region-end))
