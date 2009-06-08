@@ -473,24 +473,9 @@ characters at the beginning and end of the line."
     (mweb-update-extra-indentation)))
 
 
-(defun mweb-check-current-mode ()
-  "Checks if the current major mode is in the `mweb-tags' alist"
-  (let ((index 0)
-        (found nil)
-        (tag))
-    (while (and (< index (length mweb-tags))
-                (not found))
-      (setq tag (elt mweb-tags index))
-      (when (or (equal (elt tag 2) major-mode)
-                (equal major-mode mweb-default-major-mode))
-        (setq found t))
-      (setq index (+ 1 index)))
-    found))
-
-
 (defun mweb-check-filename-extensions ()
-  "Checks if the current buffer extension is in the
-`mweb-filename-extensions' list"
+  "Checks if the filename extension of the current buffer
+extension is in the `mweb-filename-extensions' list"
   (let ((index 0)
         (result nil)
         (found nil))
