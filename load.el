@@ -76,16 +76,7 @@
   (add-to-list 'auto-mode-alist '("\\.js$" . espresso-mode))
   (add-to-list 'auto-mode-alist '("\\.json$" . espresso-mode))
   ;; hexcolour (hexadecimal color highlighting for css mode)
-  (require 'hexcolour)
-  (add-hook 'css-mode-hook
-            (lambda ()
-              (hexcolour-mode)))
-  ;; fixme mode
-  (require 'fixme-mode)
-  (fixme-mode)
-  ;; amazing tabkey2-mode
-  (require 'tabkey2)
-  ;; Multi-Web-Mode
+  (load (concat mweb-install-dir "customizations"))
   (require 'multi-web-mode))
 
 
