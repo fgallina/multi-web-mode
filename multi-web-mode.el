@@ -61,7 +61,7 @@ the major mode has changed")
 
 
 (defcustom mweb-filename-extensions
-  '("php" "html")
+  '("php" "html" "ctp" "phtml" "php4" "php5")
   "Filename extensions on which multi-web-mode should
 auto-activate"
   :type '(list string)
@@ -468,7 +468,8 @@ characters at the beginning and end of the line."
 (defun mweb-post-command-hook ()
   "The function which is appended to the `post-command-hook'"
   (when (and multi-web-mode
-             (not (region-active-p)))
+             (not (region-active-p))
+             (not (equal last-command 'undo)))
     (mweb-update-extra-indentation)))
 
 
@@ -505,7 +506,8 @@ characters at the beginning and end of the line."
 (defun mweb-enable ()
   "This function initializes the minor mode"
   (add-hook 'post-command-hook 'mweb-post-command-hook)
-  (use-local-map mweb-mode-map)
+  (assq-delete-all 'multi-web-mode minor-mode-map-alist)
+  (push (cons 'multi-web-mode mweb-mode-map) minor-mode-map-alist)
   (run-hooks 'mweb-mode-hook))
 
 
