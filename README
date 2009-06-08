@@ -68,8 +68,7 @@ This package contains multi-web-mode.
    Major modes can be found on the `major-mode' subdirectory of the
    package, the rest is on the `extras' one.
 
-   * php-mode.el: PHP major mode modified by Lennart Borgman for
-     nxhtml. [http://php-mode.sourceforge.net/]
+   * php-mode.el: PHP major mode from [http://php-mode.sourceforge.net/]
 
    * espresso.el: Amazing Javascript mode with builtin support for
      various frameworks. [http://www.nongnu.org/espresso/]
