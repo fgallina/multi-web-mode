@@ -1,3 +1,5 @@
+(require 'multi-web-utils)
+
 ;; Add hexcolour to css mode
 (require 'hexcolour)
 (add-hook 'css-mode-hook
@@ -22,3 +24,6 @@
    (flymake-mode 1)
    ;; Open flymake error menu with F5
    (define-key php-mode-map [f5] 'flymake-display-err-menu-for-current-line)))
+
+(mweb-flymake-set-allowed-file-name-masks 
+ '("\\.php[345]?\\'" flymake-php-init flymake-master-cleanup))
