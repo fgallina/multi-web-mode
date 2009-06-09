@@ -75,7 +75,7 @@ auto-activate"
   "Tags enabled for multi-web-mode. This var is an alist on which
 each element has the form (\"open tag regex\" \"close tag
 regex\" major-mode"
-  :type 'alist
+  :type '(repeat (string string symbol))
   :group 'multi-web-mode)
 
 
@@ -287,7 +287,8 @@ which are not for the default major mode."
 account the previous submode"
   (interactive)
   (let ((indentation 0)
-        (eol))
+        (eol)
+        (buffer-modified-flag (buffer-modified-p)))
     (save-excursion
       (mweb-funcall-appropiate-major-mode)
       (end-of-line)
@@ -303,6 +304,7 @@ account the previous submode"
       (delete-region (point-marker) eol)
       (delete-backward-char 1))
     (mweb-funcall-appropiate-major-mode)
+    (set-buffer-modified-p buffer-modified-flag)
     indentation))
 
 
