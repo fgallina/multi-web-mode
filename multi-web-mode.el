@@ -38,6 +38,8 @@
 (defvar mweb-mode-map
   (let ((mweb-mode-map (make-sparse-keymap)))
     (define-key mweb-mode-map [f12] 'mweb-funcall-appropiate-major-mode)
+    (define-key mweb-mode-map [f11] 'mweb-set-extra-indentation)
+    (define-key mweb-mode-map [f9] 'mweb-set-default-major-mode)
     (define-key mweb-mode-map (kbd "TAB") 'mweb-indent)
     (define-key mweb-mode-map [backtab] 'mweb-indent-line-backward)
     (define-key mweb-mode-map [(meta tab)] 'nxml-complete)
@@ -54,7 +56,8 @@
 the major mode has changed")
 
 
-(defcustom mweb-default-major-mode 'nxml-mode
+;; (defcustom mweb-default-major-mode 'nxml-mode
+(defcustom mweb-default-major-mode 'html-mode
   "Default major mode when editing"
   :type 'symbol
   :group 'multi-web-mode)
@@ -69,8 +72,9 @@ auto-activate"
 
 
 (defcustom mweb-tags
-  '(("<\\?php\\|<\\?" "?>" php-mode)
+  '(("<\\?php\\|<\\? " "?>" php-mode)
     ("<script +type=\"text/javascript\"[^>]*>" "</script>" espresso-mode)
+    ("<script +language=\"javascript\"[^>]*>" "</script>" espresso-mode)
     ("<style +type=\"text/css\"[^>]*>" "</style>" css-mode))
   "Tags enabled for multi-web-mode. This var is an alist on which
 each element has the form (\"open tag regex\" \"close tag
@@ -127,18 +131,20 @@ returns t"
         (closest-chunk-mode mweb-default-major-mode)
         (index 0)
         (result nil))
-    (while (< index (length mweb-tags))
-      (setq result (mweb-find-starting-chunk-point (elt mweb-tags index)))
-      (when (integerp result)
-        (if (<= closest-chunk-point result)
-            (progn
-              (setq closest-chunk-point result)
-              (setq closest-chunk-mode (elt (elt mweb-tags index) 2)))))
-      (setq index (+ index 1)))
-    (if (not (equal closest-chunk-mode major-mode))
-        (progn
-          (funcall closest-chunk-mode)
-          t))))
+    (save-restriction
+      (widen)
+      (while (< index (length mweb-tags))
+        (setq result (mweb-find-starting-chunk-point (elt mweb-tags index)))
+        (when (integerp result)
+          (if (<= closest-chunk-point result)
+              (progn
+                (setq closest-chunk-point result)
+                (setq closest-chunk-mode (elt (elt mweb-tags index) 2)))))
+        (setq index (+ index 1)))
+      (if (not (equal closest-chunk-mode major-mode))
+          (progn
+            (funcall closest-chunk-mode)
+            t)))))
 
 
 (defun mweb-find-starting-chunk-point (tags)
@@ -373,6 +379,21 @@ calls \\[mweb-indent-line-forward]"
   (let ((tag-point (mweb-get-current-mode-close-tag)))
     (when tag-point
       (goto-char tag-point))))
+
+
+(defun mweb-set-extra-indentation (number)
+  "Sets the new value for mweb-extra-indentation"
+  (interactive "nNew value: ")
+  (setq mweb-extra-indentation number)
+  (message "mweb-extra-indentation = %d" mweb-extra-indentation))
+
+
+(defun mweb-set-default-major-mode (major-mode)
+  "Sets the new value for mweb-extra-indentation"
+  (interactive "CNew default major mode: ")
+  (setq mweb-default-major-mode major-mode)
+  (mweb-funcall-appropiate-major-mode)
+  (message "mweb-default-major-mode = %s" mweb-default-major-mode))
 
 
 (defun mweb-forward-nonblank-line (&optional number)
