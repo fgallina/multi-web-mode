@@ -75,6 +75,8 @@
   (autoload #'espresso-mode "espresso" "Start espresso-mode" t)
   (add-to-list 'auto-mode-alist '("\\.js$" . espresso-mode))
   (add-to-list 'auto-mode-alist '("\\.json$" . espresso-mode))
+  ;; load django-html-mode
+  (load "django-html-mode")
   ;; hexcolour (hexadecimal color highlighting for css mode)
   (load (concat mweb-install-dir "customizations"))
   (require 'multi-web-mode))
