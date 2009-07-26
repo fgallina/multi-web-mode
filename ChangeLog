@@ -1,3 +1,22 @@
+2009-07-26  Fabián Ezequiel Gallina  <fgallina@cuca>
+
+	* multi-web-mode.el: Fixed wrong mode selection when buffer is
+	narrowed; enhanced modify flag behavior; added
+	mweb-set-extra-indentation to modify the calculated extra
+	indentation easily; added mweb-set-default-major mode to change
+	the default major mode; enhanced behavior when activating and
+	deactivating the mode.
+
+	* load.el: Load django-html-mode at startup.
+
+	* django-html-mode.el: Added to the major-modes directory.
+
+	* customizations.el: flymake for php is deactivated by default but
+	the extension is added to the allowed files filter by default.
+
+	* README: added django-html-mode to the list of included major
+	modes; added new default keybindings to the keymap list.
+
 2009-05-28  Fabián Ezequiel Gallina  <fgallina@cuca>
 
 	* Release: Initial Public Release
