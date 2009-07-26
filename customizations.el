@@ -21,9 +21,10 @@
    ;; Enhanced Fill Paragraph on phpdoc comments
    (setq paragraph-separate "^[ \t]*\\(\\(/[/\\*]+\\)\\|\\(\\*+/\\)\\|\\(\\*?\\)\\|\\(\\*?[ \t]*@[[:alpha:]]+\\([ \t]+.*\\)?\\)\\)[ \t]*$")
    ;; Flymake for php
-   (flymake-mode 1)
+   ;; (flymake-mode 1)
    ;; Open flymake error menu with F5
-   (define-key php-mode-map [f5] 'flymake-display-err-menu-for-current-line)))
+   ;;(define-key php-mode-map [f5] 'flymake-display-err-menu-for-current-line)))
+))
 
-(mweb-flymake-set-allowed-file-name-masks 
+(mweb-flymake-set-allowed-file-name-masks
  '("\\.php[345]?\\'" flymake-php-init flymake-master-cleanup))
