@@ -35,7 +35,7 @@ This package contains multi-web-mode.
    includes already all the necessary major-modes and extras.
 
    Regarding the version of Emacs, this package was tested successfully
-   with 22.1 and 23.0.60.
+   with 23.0.60.
 
 3. Installation
 
@@ -49,7 +49,11 @@ This package contains multi-web-mode.
 
    Multi Web Mode binds the following keystrokes:
 
-   [12] : Sets the major mode to the correct one according to the
+   [f9] : Prompts the user to override the default major mode.
+
+   [f11] : Prompts the user to override the calculated extra indentation.
+
+   [f12] : Sets the major mode to the correct one according to the
    chunk where the point is located.
 
    [tab] : Is bound to `mweb-indent'.
@@ -72,6 +76,9 @@ This package contains multi-web-mode.
 
    * espresso.el: Amazing Javascript mode with builtin support for
      various frameworks. [http://www.nongnu.org/espresso/]
+
+   * django-html-mode: Major mode based on sgml-mode. It adds coloring
+     and indentation support django template tags in html files.
 
    * moz.el: MozRepl lets you program Firefox and other Mozilla-based
      applications from the inside; and this great minor mode lets
