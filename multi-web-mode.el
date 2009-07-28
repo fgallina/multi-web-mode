@@ -72,7 +72,7 @@ auto-activate"
 
 
 (defcustom mweb-tags
-  '(("<\\?php\\|<\\? " "?>" php-mode)
+  '(("<\\?php\\|<\\? \\|<\\?=" "\\?>" php-mode)
     ("<script +type=\"text/javascript\"[^>]*>" "</script>" espresso-mode)
     ("<script +language=\"javascript\"[^>]*>" "</script>" espresso-mode)
     ("<style +type=\"text/css\"[^>]*>" "</style>" css-mode))
@@ -126,7 +126,7 @@ current major-mode is the correct one it doesn't funcall the
 major mode and returns nil, otherwise changes the major-mode and
 returns t"
   (interactive)
-  ;; closes-chunk is a list of the form (point major-mode)
+  ;; closest-chunk is a list of the form (point major-mode)
   (let ((closest-chunk-point 0)
         (closest-chunk-mode mweb-default-major-mode)
         (index 0)
@@ -161,17 +161,27 @@ alist. If the chunk is not found then it returns nil."
       (setq first-open-point
             (if (looking-at open-tag)
                 (point)
-              (re-search-backward open-tag nil t))))
+              (when (re-search-backward open-tag nil t)
+                  (if (mweb-point-at-comment)
+                      nil
+                    (point))))))
     ;; check where is closest close tag
     (save-excursion
-      (setq first-close-point (re-search-backward close-tag nil t)))
+      (setq first-close-point
+            (if (looking-at close-tag)
+                (point)
+              (when (re-search-backward close-tag nil t)
+                (if (mweb-point-at-comment)
+                    nil
+                  (point))))))
     ;; check if we are inside a chunk
     (if (equal first-open-point nil)
         nil
       (progn
         (when (equal first-close-point nil)
           (setq first-close-point 0))
-        (if (> first-open-point first-close-point)
+        (if (or (> first-open-point first-close-point)
+                (equal (point) first-close-point))
             first-open-point
           nil)))))
 
@@ -323,52 +333,43 @@ calls \\[mweb-indent-line-forward]"
     (mweb-indent-line-forward)))
 
 
-(defun mweb-get-current-mode-open-tag ()
-  "Gets the point marker of current chunk's open tag"
-  (interactive)
-  (let ((index 0)
-        (found nil)
-        (tag)
-        (result nil))
-    (while (and (< index (length mweb-tags))
-                (not found))
-      (setq tag (elt mweb-tags index))
-      (when (or (equal (elt tag 2) major-mode)
-                (equal major-mode mweb-default-major-mode))
-        (setq found t)
-        (save-excursion
-          (if (looking-at (elt tag 0))
-              (progn
-                (back-to-indentation)
-                (setq result (point-marker)))
-            (setq result (re-search-backward (elt tag 0) nil t)))))
-      (setq index (+ 1 index)))
-    result))
+(defun mweb-get-current-mode-tag (tag-type)
+  "Gets the point marker of current chunk's open/close tag.
 
-
-(defun mweb-get-current-mode-close-tag ()
-  "Gets the point marker of current chunk's close tag"
-  (interactive)
-  (let ((index 0)
-        (found nil)
-        (tag)
-        (result nil))
-    (while (and (< index (length mweb-tags))
-                (not found))
-      (setq tag (elt mweb-tags index))
-      (when (or (equal (elt tag 2) major-mode)
-                (equal major-mode mweb-default-major-mode))
-        (setq found t)
-        (save-excursion
-          (setq result (re-search-forward (elt tag 1) nil t))))
-      (setq index (+ 1 index)))
-    result))
+The number argument can be a 0 for the open tag or 1 for the close
+tag."
+  (when (not (equal major-mode mweb-default-major-mode))
+    (let ((index 0)
+          (found nil)
+          (tag)
+          (result nil)
+          (re-search-func (if (equal tag-type 0)
+                              're-search-backward
+                            're-search-forward)))
+      (while (and (< index (length mweb-tags))
+                  (not found))
+        (setq tag (elt mweb-tags index))
+        (when (or (equal (elt tag 2) major-mode)
+                  (equal major-mode mweb-default-major-mode))
+          (setq found t)
+          (save-excursion
+            (if (looking-at (elt tag tag-type))
+                (progn
+                  (back-to-indentation)
+                  (setq result (point-marker)))
+              (setq result
+                    (when (funcall re-search-func (elt tag tag-type) nil t)
+                      (if (mweb-point-at-comment)
+                          nil
+                        (point-marker)))))))
+        (setq index (+ 1 index)))
+      result)))
 
 
 (defun mweb-goto-current-mode-open-tag ()
   "Moves the point to the open tag of the current chunk"
   (interactive)
-  (let ((tag-point (mweb-get-current-mode-open-tag)))
+  (let ((tag-point (mweb-get-current-mode-tag 0)))
     (when tag-point
       (goto-char tag-point))))
 
@@ -376,24 +377,34 @@ calls \\[mweb-indent-line-forward]"
 (defun mweb-goto-current-mode-close-tag ()
   "Moves the point to the close tag of the current chunk"
   (interactive)
-  (let ((tag-point (mweb-get-current-mode-close-tag)))
+  (let ((tag-point (mweb-get-current-mode-tag 1)))
     (when tag-point
       (goto-char tag-point))))
 
 
 (defun mweb-set-extra-indentation (number)
-  "Sets the new value for mweb-extra-indentation"
+  "Sets the new value for `mweb-extra-indentation'"
   (interactive "nNew value: ")
   (setq mweb-extra-indentation number)
   (message "mweb-extra-indentation = %d" mweb-extra-indentation))
 
 
 (defun mweb-set-default-major-mode (major-mode)
-  "Sets the new value for mweb-extra-indentation"
+  "Sets the new value for `mweb-default-major-mode'"
   (interactive "CNew default major mode: ")
   (setq mweb-default-major-mode major-mode)
   (mweb-funcall-appropiate-major-mode)
   (message "mweb-default-major-mode = %s" mweb-default-major-mode))
+
+
+(defun mweb-point-at-comment ()
+  "Returns if the point is in a comment. To test this we check if
+the face-at-point is equal to 'font-lock-comment-face"
+  (interactive)
+  (let ((point (point-marker)))
+    (if (equal (face-at-point) 'font-lock-comment-face)
+        t
+      nil)))
 
 
 (defun mweb-forward-nonblank-line (&optional number)
