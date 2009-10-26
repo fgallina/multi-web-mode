@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2009 Fabián Ezequiel Gallina.
 
-;; Author: Fabián Ezequiel Gallina <fgallina@caffeinegroup.com.ar>
-;; Maintainer: Fabián Ezequiel Gallina <fgallina@caffeinegroup.com.ar>
+;; Author: Fabián Ezequiel Gallina <fgallina@from-the-cloud.com>
+;; Maintainer: Fabián Ezequiel Gallina <fgallina@from-the-cloud.com>
 ;; Keywords: convenience, languages, wp
 
 ;; This file is part of Multi Web Mode
@@ -104,6 +104,19 @@ defined in `mweb-default-submode-indent-offset'."
   :group 'multi-web-mode)
 
 
+(defcustom mweb-ignored-commands
+  (list
+   'yas/expand
+   'yas/next-field-or-maybe-expand
+   'isearch-forward
+   'isearch-backward
+   'isearch-other-control-char)
+  "*List of commands that when are the last-command mweb will not
+change the mayor mode."
+  :type '(repeat symbol)
+  :group 'multi-web-mode)
+
+
 (defun mweb-check-for-html ()
   "Checks if the current buffer contains html tags"
   (interactive)
@@ -141,6 +154,7 @@ returns t"
                 (setq closest-chunk-point result)
                 (setq closest-chunk-mode (elt (elt mweb-tags index) 2)))))
         (setq index (+ index 1)))
+      ;(message "%s" closest-chunk-point)
       (if (not (equal closest-chunk-mode major-mode))
           (progn
             (funcall closest-chunk-mode)
@@ -158,13 +172,18 @@ alist. If the chunk is not found then it returns nil."
     ;; check where is the closest open tag or if we are looking at the
     ;; tag itself
     (save-excursion
-      (setq first-open-point
-            (if (looking-at open-tag)
-                (point)
-              (when (re-search-backward open-tag nil t)
-                  (if (mweb-point-at-comment)
-                      nil
-                    (point))))))
+      ;; (setq first-open-point
+      ;;       (if (looking-at open-tag)
+      ;;           (point)
+      ;;         (when (re-search-backward open-tag nil t)
+      ;;             (if (mweb-point-at-comment)
+      ;;                 (re-search-backward open-tag nil t)
+      ;;               (point))))))
+      (while
+          (progn
+            (setq first-open-point (re-search-backward open-tag nil t))
+            (and (not (equal first-open-point nil))
+                 (mweb-point-at-comment)))))
     ;; check where is closest close tag
     (save-excursion
       (setq first-close-point
@@ -245,19 +264,23 @@ regards to the default major mode. In case that
 `mweb-submodes-magic-indent' is nil it will indent the line
 according to the value of `mweb-default-submode-indent-offset'"
   (interactive "*")
-    (if (not (equal major-mode mweb-default-major-mode))
-        (if mweb-submodes-magic-indent
-            (if (mweb-check-for-html)
-                (mweb-submode-indent-line)
-              (indent-according-to-mode))
-          (let ((ci (current-indentation)))
-            (save-excursion
-              (beginning-of-line)
-              (delete-horizontal-space)
-              (indent-to (+ ci mweb-default-submode-indent-offset)))))
-      (indent-according-to-mode))
-    (when (equal (mweb-get-current-line-contents) "")
-      (back-to-indentation)))
+  (let ((expanded-snippet (when (fboundp 'yas/expand)
+                            (setq yas/fallback-behavior nil)
+                            (yas/expand))))
+  (if (and (not (equal major-mode mweb-default-major-mode))
+           (not expanded-snippet))
+      (if mweb-submodes-magic-indent
+          (if (mweb-check-for-html)
+              (mweb-submode-indent-line)
+            (indent-according-to-mode))
+        (let ((ci (current-indentation)))
+          (save-excursion
+            (beginning-of-line)
+            (delete-horizontal-space)
+            (indent-to (+ ci mweb-default-submode-indent-offset)))))
+    (indent-according-to-mode))
+  (when (equal (mweb-get-current-line-contents) "")
+    (back-to-indentation))))
 
 
 (defun mweb-indent-line-backward ()
@@ -356,12 +379,12 @@ tag."
             (if (looking-at (elt tag tag-type))
                 (progn
                   (back-to-indentation)
-                  (setq result (point-marker)))
-              (setq result
-                    (when (funcall re-search-func (elt tag tag-type) nil t)
-                      (if (mweb-point-at-comment)
-                          nil
-                        (point-marker)))))))
+                  (setq result (point)))
+              (while
+                  (progn
+                    (setq result (funcall re-search-func (elt tag tag-type) nil t))
+                    (and (not (equal result nil))
+                         (mweb-point-at-comment)))))))
         (setq index (+ 1 index)))
       result)))
 
@@ -384,7 +407,7 @@ tag."
 
 (defun mweb-set-extra-indentation (number)
   "Sets the new value for `mweb-extra-indentation'"
-  (interactive "nNew value: ")
+  (interactive "nNew mweb-extra-indentation value: ")
   (setq mweb-extra-indentation number)
   (message "mweb-extra-indentation = %d" mweb-extra-indentation))
 
@@ -503,6 +526,7 @@ characters at the beginning and end of the line."
   "The function which is appended to the `post-command-hook'"
   (when (and multi-web-mode
              (not (region-active-p))
+             (not (member last-command mweb-ignored-commands))
              (not (equal last-command 'undo)))
     (mweb-update-extra-indentation)))
 
