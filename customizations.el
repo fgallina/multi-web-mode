@@ -12,7 +12,7 @@
 
 ;; amazing tabkey2-mode
 (require 'tabkey2)
-(tabkey2-mode)
+;(tabkey2-mode)
 
 ;; PHP Mode Customizations
 (add-hook
