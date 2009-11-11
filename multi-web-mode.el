@@ -234,8 +234,8 @@ chunks."
   "Function to use when indenting a submode line"
   (interactive)
   (mweb-funcall-appropiate-major-mode)
-  (if (not (mweb-looking-at-open-tag))
-      (if (not (mweb-looking-at-close-tag))
+  (if (not (mweb-looking-at-open-tag-p))
+      (if (not (mweb-looking-at-close-tag-p))
           (save-excursion
             (beginning-of-line)
             (delete-horizontal-space)
@@ -476,61 +476,49 @@ characters at the beginning and end of the line."
         (setq contents (replace-match "" nil nil contents))))
     contents))
 
-;; TODO: unify mweb-looking-at-*tag and add -p to names
-(defun mweb-looking-at-tag ()
-  "Returns t if pointer is looking at an open or close tag"
+
+(defun mweb-looking-at-tag (&optional type)
+  "Returns non-nil if pointer is looking at an open or close tag.
+
+Possible values of TYPE are:
+    * nil: to check if point is looking at an open or close tag.
+    * 'open: to check if point is looking at an open tag
+    * 'close: to check if point is looking at a close tag
+"
   (let ((index 0)
-        (looking nil)
+        (looking)
         (open-tag)
         (close-tag)
-        (result nil))
+        (tag-regexp))
     (save-excursion
       (back-to-indentation)
       (while (and (< index (length mweb-tags))
                   (not looking))
         (setq open-tag (elt (elt mweb-tags index) 0))
         (setq close-tag (elt (elt mweb-tags index) 1))
-        (when (or (looking-at open-tag)
-                  (looking-at close-tag))
+        (case type
+          ('nil (setq tag-regexp (concat open-tag "\\|" close-tag)))
+          ('open (setq tag-regexp open-tag))
+          ('close (setq tag-regexp close-tag)))
+        (when (looking-at tag-regexp)
           (setq looking t))
         (setq index (+ 1 index))))
     looking))
 
 
-(defun mweb-looking-at-open-tag ()
-  "Returns t if pointer is looking at an open tag"
-  (let ((index 0)
-        (looking nil)
-        (open-tag)
-        (result nil))
-    (save-excursion
-      (back-to-indentation)
-      (mweb-funcall-appropiate-major-mode)
-      (while (and (< index (length mweb-tags))
-                  (not looking))
-        (setq open-tag (elt (elt mweb-tags index) 0))
-        (when (looking-at open-tag)
-          (setq looking t))
-        (setq index (+ 1 index))))
-    looking))
+(defsubst mweb-looking-at-open-tag-p ()
+  "Returns t if point is looking at an open tag"
+  (mweb-looking-at-tag 'open))
 
 
-(defun mweb-looking-at-close-tag ()
-  "Returns t if pointer is looking at a close tag"
-  (let ((index 0)
-        (looking nil)
-        (close-tag)
-        (result nil))
-    (save-excursion
-      (back-to-indentation)
-      (mweb-funcall-appropiate-major-mode)
-      (while (and (< index (length mweb-tags))
-                  (not looking))
-        (setq close-tag (elt (elt mweb-tags index) 1))
-        (when (looking-at close-tag)
-          (setq looking t))
-        (setq index (+ 1 index))))
-    looking))
+(defsubst mweb-looking-at-close-tag-p ()
+  "Returns t if point is looking at a close tag"
+  (mweb-looking-at-tag 'close))
+
+
+(defsubst mweb-looking-at-tag-p ()
+  "Returns t if point is looking at an open or close tag"
+  (mweb-looking-at-tag))
 
 
 (defun mweb-post-command-hook ()
