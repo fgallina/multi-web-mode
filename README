@@ -3,10 +3,10 @@ This package contains multi-web-mode.
 0. Info
 
    Author: Fabián Ezequiel Gallina
-   Contact: fgallina at caffeinegroup dot com dot ar
+   Contact: fgallina at from-the-cloud dot com
    Project homepage: http://github.com/fgallina/multi-web-mode
    Wiki: http://github.com/fgallina/multi-web-mode/wikis
-   My Blog: http://www.caffeinegroup.com.ar
+   My Blog: http://www.from-the-cloud.com
    Downloads page: http://github.com/fgallina/multi-web-mode/downloads
 
 1. Introduction
@@ -27,7 +27,7 @@ This package contains multi-web-mode.
 
    If you wish a major-mode or extra to be included in the default
    package please let me know at:
-   fgallina at caffeinegroup dot com dot ar
+   fgallina at from-the-cloud dot com
 
 2. Requirements
 
@@ -49,12 +49,9 @@ This package contains multi-web-mode.
 
    Multi Web Mode binds the following keystrokes:
 
-   [f9] : Prompts the user to override the default major mode.
+   M-<f11> : Prompts the user to override the default major mode.
 
-   [f11] : Prompts the user to override the calculated extra indentation.
-
-   [f12] : Sets the major mode to the correct one according to the
-   chunk where the point is located.
+   M-<f12> : Prompts the user to override the calculated extra indentation.
 
    [tab] : Is bound to `mweb-indent'.
 
@@ -62,11 +59,9 @@ This package contains multi-web-mode.
    `mweb-submodes-magic-indent' is nil. It deletes the number of spaces
    defined in `mweb-default-submode-indent-offset'.
 
-   [M-TAB] : Calls nxml-complete.
-
 5. Included packages
 
-   These are third party packages which are called by
+   These are third party packages which are included appart from
    multi-web-mode.el. See the license terms on the top of the files.
 
    Major modes can be found on the `major-mode' subdirectory of the
@@ -100,7 +95,7 @@ This package contains multi-web-mode.
 6. Bug Reports
 
    If you find a bug please report it to:
-   fgallina at caffeinegroup dot com dot ar
+   fgallina at from-the-cloud dot com
 
 7. License
 
