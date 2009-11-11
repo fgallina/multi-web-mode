@@ -542,19 +542,11 @@ characters at the beginning and end of the line."
     (mweb-update-extra-indentation)))
 
 
-(defun mweb-check-filename-extensions ()
-  "Checks if the filename extension of the current buffer
-extension is in the `mweb-filename-extensions' list"
-  (let ((index 0)
-        (result nil)
-        (found nil))
-    (when buffer-file-name
-      (while (and (< index (length mweb-filename-extensions))
-                  (not found))
-        (when (equal (file-name-extension buffer-file-name) (elt mweb-filename-extensions index))
-          (setq found t))
-        (setq index (1+ index))))
-    found))
+(defun mweb-allowed-filename-extension-p ()
+  "Checks if the current buffer's filename extension is included
+in the `mweb-filename-extensions' list"
+  (when buffer-file-name
+    (member (file-name-extension buffer-file-name) mweb-filename-extensions)))
 
 
 (defun mweb-enable ()
@@ -577,7 +569,7 @@ extension is in the `mweb-filename-extensions' list"
   "This function is added to the `find-file-hook' and the
 `after-change-major-mode-hook' hooks and handles multi-web-mode's
 auto-activation"
-  (if (and (mweb-check-filename-extensions)
+  (if (and (mweb-allowed-filename-extension-p)
            (not mweb-is-disabled))
       (multi-web-mode 1)
     (multi-web-mode -1)))
