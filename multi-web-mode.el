@@ -34,15 +34,26 @@
 
 ;;; Code:
 
+(defvar mweb-is-disabled nil
+  "This var is used to prevent the automatic reactivation of
+multi-web-mode when the user deactivated it explicitly. This var if
+buffer-local")
+
+(make-local-variable 'mweb-is-disabled)
+
+(defvar mweb-first-run t
+  "This var is used to prevent the multi-web-mode to be disabled
+the first time it runs. This var if buffer-local")
+
+(make-local-variable 'mweb-first-run)
 
 (defvar mweb-mode-map
   (let ((mweb-mode-map (make-sparse-keymap)))
-    (define-key mweb-mode-map [f12] 'mweb-funcall-appropiate-major-mode)
-    (define-key mweb-mode-map [f11] 'mweb-set-extra-indentation)
-    (define-key mweb-mode-map [f9] 'mweb-set-default-major-mode)
+    ;(define-key mweb-mode-map (kbd "M-<f12>") 'mweb-funcall-appropiate-major-mode)
+    (define-key mweb-mode-map (kbd "M-<f10>") 'mweb-set-default-major-mode)
+    (define-key mweb-mode-map (kbd "M-<f11>") 'mweb-set-extra-indentation)
     (define-key mweb-mode-map (kbd "TAB") 'mweb-indent)
     (define-key mweb-mode-map [backtab] 'mweb-indent-line-backward)
-    (define-key mweb-mode-map [(meta tab)] 'nxml-complete)
     mweb-mode-map)
   "Keymaps for multi-web-mode")
 
@@ -56,16 +67,15 @@
 the major mode has changed")
 
 
-;; (defcustom mweb-default-major-mode 'nxml-mode
 (defcustom mweb-default-major-mode 'html-mode
-  "Default major mode when editing"
+  "*Default major mode when not in chunk"
   :type 'symbol
   :group 'multi-web-mode)
 
 
 (defcustom mweb-filename-extensions
   '("php" "htm" "html" "ctp" "phtml" "php4" "php5")
-  "Filename extensions on which multi-web-mode should
+  "*Filename extensions on which multi-web-mode should
 auto-activate"
   :type '(list string)
   :group 'multi-web-mode)
@@ -76,7 +86,7 @@ auto-activate"
     ("<script +type=\"text/javascript\"[^>]*>" "</script>" espresso-mode)
     ("<script +language=\"javascript\"[^>]*>" "</script>" espresso-mode)
     ("<style +type=\"text/css\"[^>]*>" "</style>" css-mode))
-  "Tags enabled for multi-web-mode. This var is an alist on which
+  "*Tags enabled for multi-web-mode. This var is an alist on which
 each element has the form (\"open tag regex\" \"close tag
 regex\" major-mode"
   :type '(repeat (string string symbol))
@@ -111,7 +121,7 @@ defined in `mweb-default-submode-indent-offset'."
    'isearch-forward
    'isearch-backward
    'isearch-other-control-char)
-  "*List of commands that when are the last-command mweb will not
+  "*List of commands that will prevent when multi-web-mode to
 change the mayor mode."
   :type '(repeat symbol)
   :group 'multi-web-mode)
@@ -162,9 +172,9 @@ returns t"
 
 
 (defun mweb-find-starting-chunk-point (tags)
-  "Returns the point of the closest chunk for the `tags' argument
-which is one of the elements contained in the `mweb-tags'
-alist. If the chunk is not found then it returns nil."
+  "Returns the point of the closest chunk for TAGS which is one
+of the elements contained in the `mweb-tags' alist. If the chunk
+is not found then it returns nil."
   (let ((first-close-point 0)
         (first-open-point 0)
         (open-tag (elt tags 0))
@@ -251,18 +261,19 @@ chunks."
 
 
 (defun mweb-indent-line-forward ()
-  "Indents the line according to the mode and in relation with
-the default major mode.
+  "Indents the line according to the current major-mode and in
+relation with the default major mode.
 
-In the case that the default major mode is beign used then it
-will fallback to the \\[indent-according-to-mode-command] function.
+In the case that the current major-mode is the default it will
+fallback to \\[indent-according-to-mode]'.
 
-If the current line's mode is not the default major and
+If the current line's mode is not the default major-mode and
 `mweb-submodes-magic-indent' is t mode then it will indent the
 line taking into account the relative position of the chunk in
-regards to the default major mode. In case that
+regards to the default major-mode. In case that
 `mweb-submodes-magic-indent' is nil it will indent the line
-according to the value of `mweb-default-submode-indent-offset'"
+according to the value defined in
+`mweb-default-submode-indent-offset'"
   (interactive "*")
   (let ((expanded-snippet (when (fboundp 'yas/expand)
                             (setq yas/fallback-behavior nil)
@@ -359,8 +370,8 @@ calls \\[mweb-indent-line-forward]"
 (defun mweb-get-current-mode-tag (tag-type)
   "Gets the point marker of current chunk's open/close tag.
 
-The number argument can be a 0 for the open tag or 1 for the close
-tag."
+The TAG-TYPE argument can be a 0 for the open tag or 1 for the
+close tag."
   (when (not (equal major-mode mweb-default-major-mode))
     (let ((index 0)
           (found nil)
@@ -406,14 +417,14 @@ tag."
 
 
 (defun mweb-set-extra-indentation (number)
-  "Sets the new value for `mweb-extra-indentation'"
+  "Sets the new value for `mweb-extra-indentation' to NUMBER"
   (interactive "nNew mweb-extra-indentation value: ")
   (setq mweb-extra-indentation number)
   (message "mweb-extra-indentation = %d" mweb-extra-indentation))
 
 
 (defun mweb-set-default-major-mode (major-mode)
-  "Sets the new value for `mweb-default-major-mode'"
+  "Sets the new value for `mweb-default-major-mode' to MAJOR-MODE"
   (interactive "CNew default major mode: ")
   (setq mweb-default-major-mode major-mode)
   (mweb-funcall-appropiate-major-mode)
@@ -433,8 +444,8 @@ the face-at-point is equal to 'font-lock-comment-face"
 (defun mweb-forward-nonblank-line (&optional number)
   "Moves the cursor to the next/previous non blank line.
 
-With a positive argument it searches forward and with a negative
-it searches backwards."
+When NUMBER is positive it moves forward and when is negative
+it moves backwards."
   (when (not number)
     (setq number 1))
   (when (> number 1)
@@ -465,7 +476,7 @@ characters at the beginning and end of the line."
         (setq contents (replace-match "" nil nil contents))))
     contents))
 
-
+;; TODO: unify mweb-looking-at-*tag and add -p to names
 (defun mweb-looking-at-tag ()
   "Returns t if pointer is looking at an open or close tag"
   (let ((index 0)
@@ -547,7 +558,8 @@ extension is in the `mweb-filename-extensions' list"
 
 
 (defun mweb-enable ()
-  "This function initializes the minor mode"
+  "Initializes the minor mode"
+  (setq mweb-is-disabled nil)
   (add-hook 'post-command-hook 'mweb-post-command-hook)
   (assq-delete-all 'multi-web-mode minor-mode-map-alist)
   (push (cons 'multi-web-mode mweb-mode-map) minor-mode-map-alist)
@@ -555,7 +567,20 @@ extension is in the `mweb-filename-extensions' list"
 
 
 (defun mweb-disable ()
-  "This function takes care to disable the minor mode")
+  "Contains the necessary code to disable the minor mode"
+  (if (not mweb-first-run)
+      (setq mweb-is-disabled t)
+    (setq mweb-first-run nil)))
+
+
+(defun mweb-auto-activate ()
+  "This function is added to the `find-file-hook' and the
+`after-change-major-mode-hook' hooks and handles multi-web-mode's
+auto-activation"
+  (if (and (mweb-check-filename-extensions)
+           (not mweb-is-disabled))
+      (multi-web-mode 1)
+    (multi-web-mode -1)))
 
 
 ;;;###autoload
@@ -567,26 +592,11 @@ extension is in the `mweb-filename-extensions' list"
     (mweb-disable)))
 
 
-;; Check if multi-web-mode should be activated for the file
-(add-hook 'find-file-hook
-          (lambda ()
-            (if (mweb-check-filename-extensions)
-                (progn
-                  (multi-web-mode 1))
-              (progn
-                (multi-web-mode -1)))))
+(add-hook 'find-file-hook 'mweb-auto-activate)
 
-
-;; Check if multi-web-mode should be activated for the mode
-(add-hook 'after-change-major-mode-hook
-          (lambda ()
-            (if (mweb-check-filename-extensions)
-                (progn
-                  (multi-web-mode 1))
-              (progn
-                (multi-web-mode -1)))))
+(add-hook 'after-change-major-mode-hook 'mweb-auto-activate)
 
 
 (provide 'multi-web-mode)
 
-;;; multi-web-mode-el ends here
+;;; multi-web-mode.el ends here
