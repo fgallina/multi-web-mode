@@ -39,13 +39,11 @@
 multi-web-mode when the user deactivated it explicitly. This var if
 buffer-local")
 
-(make-local-variable 'mweb-is-disabled)
 
 (defvar mweb-first-run t
   "This var is used to prevent the multi-web-mode to be disabled
 the first time it runs. This var if buffer-local")
 
-(make-local-variable 'mweb-first-run)
 
 (defvar mweb-mode-map
   (let ((mweb-mode-map (make-sparse-keymap)))
@@ -567,6 +565,8 @@ auto-activation"
 (define-minor-mode multi-web-mode
   "Enables the multi web mode chunk detection and indentation"
   :lighter " Multi-Web" :group 'convenience
+  (make-local-variable 'mweb-first-run)
+  (make-local-variable 'mweb-is-disabled)
   (if multi-web-mode
       (mweb-enable)
     (mweb-disable)))
