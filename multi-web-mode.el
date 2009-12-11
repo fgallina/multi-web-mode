@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2009 Fabián Ezequiel Gallina.
 
-;; Author: Fabián Ezequiel Gallina <fgallina@from-the-cloud.com>
-;; Maintainer: Fabián Ezequiel Gallina <fgallina@from-the-cloud.com>
+;; Author: Fabián Ezequiel Gallina <fabian@gnu.org.ar>
+;; Maintainer: Fabián Ezequiel Gallina <fabian@gnu.org.ar>
 ;; Keywords: convenience, languages, wp
 
 ;; This file is part of Multi Web Mode
