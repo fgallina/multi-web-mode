@@ -119,8 +119,8 @@ defined in `mweb-default-submode-indent-offset'."
    'isearch-forward
    'isearch-backward
    'isearch-other-control-char)
-  "*List of commands that will prevent when multi-web-mode to
-change the mayor mode."
+  "*List of commands that will prevent multi-web-mode to change
+the mayor mode."
   :type '(repeat symbol)
   :group 'multi-web-mode)
 

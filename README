@@ -3,7 +3,7 @@ This package contains multi-web-mode.
 0. Info
 
    Author: Fabián Ezequiel Gallina
-   Contact: fgallina at from-the-cloud dot com
+   Contact: fabian at gnu dot org dot ar
    Project homepage: http://github.com/fgallina/multi-web-mode
    Wiki: http://github.com/fgallina/multi-web-mode/wikis
    My Blog: http://www.from-the-cloud.com
@@ -26,8 +26,7 @@ This package contains multi-web-mode.
    for the `mweb-tags' variable.
 
    If you wish a major-mode or extra to be included in the default
-   package please let me know at:
-   fgallina at from-the-cloud dot com
+   package please let me know.
 
 2. Requirements
 
@@ -94,8 +93,8 @@ This package contains multi-web-mode.
 
 6. Bug Reports
 
-   If you find a bug please report it to:
-   fgallina at from-the-cloud dot com
+   If you find a bug please report it sending an email listed in the
+   top of the file.
 
 7. License
 
