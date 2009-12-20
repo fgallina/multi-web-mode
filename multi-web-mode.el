@@ -86,6 +86,7 @@ regex\" major-mode"
 
 (defcustom mweb-ignored-commands
   (list
+   'undo
    'yas/expand
    'yas/next-field-or-maybe-expand
    'isearch-forward
@@ -140,6 +141,13 @@ returns a symbol with its name."
         closest-chunk-mode)))
 
 
+(defun mweb-change-indent-line-function ()
+  "Sets the correct value for `indent-line-function' and
+`indent-region-function' depending of `major-mode'."
+  (when (not (equal major-mode mweb-default-major-mode))
+    (set (make-local-variable 'indent-line-function) 'mweb-indent-line)))
+
+
 (defun mweb-closest-starting-chunk-point (tag)
   "Returns the point of the closest chunk for TAG which is one of
 the tag contained in the `mweb-tags' list. If the chunk is not
@@ -159,14 +167,15 @@ found then it returns nil."
          open-tag))))
 
 
-(defun mweb-update-extra-indentation ()
+(defun mweb-update-context ()
   "This function takes care of updating the extra indentation for
 chunks."
   (let ((changed-major-mode (mweb-change-major-mode)))
     (if (and changed-major-mode
              (not (equal major-mode mweb-default-major-mode)))
         (setq mweb-extra-indentation (mweb-calculate-indentation))
-      (setq mweb-extra-indentation 0))))
+      (setq mweb-extra-indentation 0)))
+  (mweb-change-indent-line-function))
 
 
 (defun mweb-calculate-indentation ()
@@ -220,7 +229,7 @@ account the previous submode"
       (insert "a")
       (delete-horizontal-space)
       (beginning-of-line)
-      (mweb-update-extra-indentation)
+      (mweb-update-context)
       (indent-according-to-mode)
       (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))
       (delete-char 1))))
@@ -241,7 +250,7 @@ which are not for the default major mode."
       (goto-char start)
       (or (bolp) (forward-line 1))
       (while (< (point) end)
-        (mweb-update-extra-indentation)
+        (mweb-update-context)
         (mweb-indent-line)
         (forward-line 1))
       (move-marker end nil))))
@@ -403,11 +412,11 @@ Possible values of TYPE are:
 
 (defun mweb-post-command-hook ()
   "The function which is appended to the `post-command-hook'"
-  (when (and multi-web-mode
-             (not (region-active-p))
-             (not (member last-command mweb-ignored-commands))
-             (not (equal last-command 'undo)))
-    (mweb-update-extra-indentation)))
+  (when multi-web-mode
+    (set (make-local-variable 'indent-region-function) 'mweb-indent-region)
+    (when (and (not (region-active-p))
+               (not (member last-command mweb-ignored-commands)))
+      (mweb-update-context))))
 
 
 (defun mweb-enable ()
