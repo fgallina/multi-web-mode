@@ -206,33 +206,36 @@ account the previous submode"
     indentation))
 
 
-(defun mweb-submode-indent-line ()
+(defun mweb-indent-line ()
   "Function to use when indenting a submode line"
   (interactive)
-  (if (not (mweb-looking-at-open-tag-p))
-      (if (not (mweb-looking-at-close-tag-p))
-          (save-excursion
+  (if (equal major-mode mweb-default-major-mode)
+      (indent-according-to-mode)
+    (setq mweb-extra-indentation (mweb-calculate-indentation))    
+    (if (not (mweb-looking-at-open-tag-p))
+        (if (not (mweb-looking-at-close-tag-p))
+            (save-excursion
+              (beginning-of-line)
+              (delete-horizontal-space)
+              (indent-according-to-mode)
+              (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset)))
+          (let ((open-tag-indentation 0))
+            (save-excursion
+              (mweb-goto-current-mode-open-tag)
+              (setq open-tag-indentation (current-indentation)))
             (beginning-of-line)
             (delete-horizontal-space)
-            (indent-according-to-mode)
-            (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset)))
-        (let ((open-tag-indentation 0))
-          (save-excursion
-            (mweb-goto-current-mode-open-tag)
-            (setq open-tag-indentation (current-indentation)))
-          (beginning-of-line)
-          (delete-horizontal-space)
-          (indent-to open-tag-indentation)))
-    (progn
-      (beginning-of-line)
-      (delete-horizontal-space)
-      (insert "a")
-      (delete-horizontal-space)
-      (beginning-of-line)
-      (mweb-update-context)
-      (indent-according-to-mode)
-      (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))
-      (delete-char 1))))
+            (indent-to open-tag-indentation)))
+      (progn
+        (beginning-of-line)
+        (delete-horizontal-space)
+        (insert "a")
+        (delete-horizontal-space)
+        (beginning-of-line)
+        (mweb-update-context)
+        (indent-according-to-mode)
+        (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))
+        (delete-char 1)))))
 
 
 (defun mweb-indent-region (start end)
