@@ -323,7 +323,7 @@ the close tag."
 (defun mweb-goto-current-mode-open-tag ()
   "Moves the point to the open tag of the current chunk"
   (interactive)
-  (let ((tag-point (mweb-get-current-mode-tag 'open)))
+  (let ((tag-point (mweb-get-current-mode-tag-point 'open)))
     (when tag-point
       (goto-char tag-point))))
 
@@ -331,7 +331,7 @@ the close tag."
 (defun mweb-goto-current-mode-close-tag ()
   "Moves the point to the close tag of the current chunk"
   (interactive)
-  (let ((tag-point (mweb-get-current-mode-tag 'close)))
+  (let ((tag-point (mweb-get-current-mode-tag-point 'close)))
     (when tag-point
       (goto-char tag-point))))
 
