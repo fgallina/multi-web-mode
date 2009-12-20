@@ -193,8 +193,7 @@ account the previous submode"
       (insert "\n")
       (insert "a")
       (mweb-change-major-mode)
-      (when (equal major-mode mweb-default-major-mode)
-        (indent-according-to-mode))
+      (indent-according-to-mode)
       (setq indentation (current-indentation))
       (end-of-line)
       (setq eol (point-marker))
@@ -209,16 +208,19 @@ account the previous submode"
 (defun mweb-indent-line ()
   "Function to use when indenting a submode line"
   (interactive)
+  ;; Yes, indent according to mode will do what we spect
   (if (equal major-mode mweb-default-major-mode)
       (indent-according-to-mode)
     (setq mweb-extra-indentation (mweb-calculate-indentation))    
     (if (not (mweb-looking-at-open-tag-p))
         (if (not (mweb-looking-at-close-tag-p))
+            ;; Normal indentation
             (save-excursion
               (beginning-of-line)
               (delete-horizontal-space)
               (indent-according-to-mode)
               (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset)))
+          ;; Close tag indentation routine
           (let ((open-tag-indentation 0))
             (save-excursion
               (mweb-goto-current-mode-open-tag)
@@ -226,6 +228,7 @@ account the previous submode"
             (beginning-of-line)
             (delete-horizontal-space)
             (indent-to open-tag-indentation)))
+      ;; Open tag indentation routine
       (progn
         (beginning-of-line)
         (delete-horizontal-space)
@@ -235,7 +238,8 @@ account the previous submode"
         (mweb-update-context)
         (indent-according-to-mode)
         (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))
-        (delete-char 1)))))
+        (delete-char 1))))
+  (when (bolp) (back-to-indentation)))
 
 
 (defun mweb-indent-region (start end)
@@ -251,6 +255,7 @@ which are not for the default major mode."
       (goto-char end)
       (setq end (point-marker))
       (goto-char start)
+      (mweb-change-major-mode)
       (or (bolp) (forward-line 1))
       (while (< (point) end)
         (mweb-update-context)
