@@ -34,16 +34,6 @@
 
 ;;; Code:
 
-(defvar mweb-is-disabled nil
-  "This var is used to prevent the automatic reactivation of
-multi-web-mode when the user deactivated it explicitly. This var if
-buffer-local")
-
-
-(defvar mweb-first-run t
-  "This var is used to prevent the multi-web-mode to be disabled
-the first time it runs. This var if buffer-local")
-
 
 (defvar mweb-mode-map
   (let ((mweb-mode-map (make-sparse-keymap)))
@@ -528,13 +518,6 @@ Possible values of TYPE are:
     (mweb-update-extra-indentation)))
 
 
-(defun mweb-allowed-filename-extension-p ()
-  "Checks if the current buffer's filename extension is included
-in the `mweb-filename-extensions' list"
-  (when buffer-file-name
-    (member (file-name-extension buffer-file-name) mweb-filename-extensions)))
-
-
 (defun mweb-enable ()
   "Initializes the minor mode"
   (setq mweb-is-disabled nil)
@@ -546,19 +529,7 @@ in the `mweb-filename-extensions' list"
 
 (defun mweb-disable ()
   "Contains the necessary code to disable the minor mode"
-  (if (not mweb-first-run)
-      (setq mweb-is-disabled t)
-    (setq mweb-first-run nil)))
-
-
-(defun mweb-auto-activate ()
-  "This function is added to the `find-file-hook' and the
-`after-change-major-mode-hook' hooks and handles multi-web-mode's
-auto-activation"
-  (if (and (mweb-allowed-filename-extension-p)
-           (not mweb-is-disabled))
-      (multi-web-mode 1)
-    (multi-web-mode -1)))
+  (assq-delete-all 'multi-web-mode minor-mode-map-alist))
 
 
 ;;;###autoload
@@ -572,9 +543,18 @@ auto-activation"
     (mweb-disable)))
 
 
-(add-hook 'find-file-hook 'mweb-auto-activate)
+(defun multi-web-mode-maybe ()
+  "Used to turn on the globalized minor mode."
+  (when (member 
+         (file-name-extension (or buffer-file-name "")) 
+         mweb-filename-extensions)
+    (multi-web-mode 1)))
 
-(add-hook 'after-change-major-mode-hook 'mweb-auto-activate)
+
+(define-globalized-minor-mode multi-web-global-mode
+  multi-web-mode multi-web-mode-maybe
+  :group 'multi-web-mode
+  :require 'multi-web-mode)
 
 
 (provide 'multi-web-mode)
