@@ -78,21 +78,6 @@ regex\" major-mode"
   :group 'multi-web-mode)
 
 
-(defcustom mweb-submodes-magic-indent t
-  "*If its value is t then submodes will indent automatically
-with their own rules, otherwise it will indent with the offset
-defined in `mweb-default-submode-indent-offset'."
-  :type 'bool
-  :group 'multi-web-mode)
-
-
-(defcustom mweb-default-submode-indent-offset 4
-  "*Indentation offset for submodes when
-`mweb-submodes-magic-indent' is t."
-  :type 'integer
-  :group 'multi-web-mode)
-
-
 (defcustom mweb-submode-indent-offset 2
   "*Indentation offset for code inside chunks."
   :type 'integer
@@ -110,22 +95,6 @@ defined in `mweb-default-submode-indent-offset'."
 the mayor mode."
   :type '(repeat symbol)
   :group 'multi-web-mode)
-
-
-(defun mweb-check-for-html ()
-  "Checks if the current buffer contains html tags"
-  (interactive)
-  (let ((html-tag-re "^\\s-*</?\\sw+.*?>")
-        (found nil))
-    (save-excursion
-      (mweb-goto-current-mode-open-tag)
-      (when (re-search-backward html-tag-re nil t)
-        (setq found t)))
-    (save-excursion
-      (when (mweb-goto-current-mode-close-tag)
-        (when (re-search-forward html-tag-re nil t)
-          (setq found t))))
-    found))
 
 
 (defun mweb--tag-get-attr (tag attribute)
@@ -276,15 +245,6 @@ which are not for the default major mode."
         (mweb-indent-line)
         (forward-line 1))
       (move-marker end nil))))
-
-
-(defun mweb-indent (&optional arg)
-  "If a region is selected then calls \\[mweb-indent-region] else
-calls \\[mweb-indent-line-forward]"
-  (interactive "P")
-  (if (use-region-p)
-      (mweb-indent-region (region-beginning) (region-end))
-    (mweb-indent-line-forward)))
 
 
 (defun mweb-get-current-mode-tag-point (type)
@@ -468,8 +428,6 @@ Possible values of TYPE are:
 (define-minor-mode multi-web-mode
   "Enables the multi web mode chunk detection and indentation"
   :lighter " Multi-Web" :group 'convenience
-  (make-local-variable 'mweb-first-run)
-  (make-local-variable 'mweb-is-disabled)
   (if multi-web-mode
       (mweb-enable)
     (mweb-disable)))
