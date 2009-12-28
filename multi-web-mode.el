@@ -68,7 +68,7 @@ auto-activate"
 
 (defcustom mweb-tags
   '(("<\\?php\\|<\\? \\|<\\?=" "\\?>" php-mode)
-    ("<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" 
+    ("<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>"
      "</script>" espresso-mode)
     ("<style +type=\"text/css\"[^>]*>" "</style>" css-mode))
   "*Tags enabled for multi-web-mode. This var is an alist on which
@@ -93,22 +93,21 @@ regex\" major-mode"
    'isearch-backward
    'isearch-other-control-char)
   "*List of commands that will prevent multi-web-mode to change
-the mayor mode."
+the major mode."
   :type '(repeat symbol)
   :group 'multi-web-mode)
 
 
 (defun mweb--tag-get-attr (tag attribute)
-  "Gets ATTRIBUTE from TAG. 
+  "Gets ATTRIBUTE from TAG.
 
 ATTRIBUTE values can be 'mode to get the tag's major mode or
 'open/'close to get the open/close regexp respectively."
-  (cond ((equal attribute 'open)
-         (car tag))
-        ((equal attribute 'close)
-         (cadr tag))
-        ((equal attribute 'mode)
-         (caddr tag))))
+  (case attribute
+    ('nil (setq tag-regexp (concat open-tag "\\|" close-tag)))
+    ('open (car tag))
+    ('close (cadr tag))
+    ('mode (caddr tag))))
 
 
 (defun mweb--get-tag (tag-major-mode)
@@ -209,36 +208,36 @@ account the previous submode"
   "Function to use when indenting a submode line"
   (interactive)
   ;; Yes, indent according to mode will do what we spect
-  (if (equal major-mode mweb-default-major-mode)
-      (indent-according-to-mode)
-    (setq mweb-extra-indentation (mweb-calculate-indentation))    
-    (if (not (mweb-looking-at-open-tag-p))
-        (if (not (mweb-looking-at-close-tag-p))
-            ;; Normal indentation
+  (setq mweb-extra-indentation (mweb-calculate-indentation))
+  (if (not (mweb-looking-at-open-tag-p))
+      (if (not (mweb-looking-at-close-tag-p))
+          ;; Normal indentation
+          (if (equal major-mode mweb-default-major-mode)
+              (indent-according-to-mode)
             (save-excursion
               (beginning-of-line)
               (delete-horizontal-space)
               (indent-according-to-mode)
-              (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset)))
-          ;; Close tag indentation routine
-          (let ((open-tag-indentation 0))
-            (save-excursion
-              (mweb-goto-current-mode-open-tag)
-              (setq open-tag-indentation (current-indentation)))
-            (beginning-of-line)
-            (delete-horizontal-space)
-            (indent-to open-tag-indentation)))
-      ;; Open tag indentation routine
-      (progn
-        (beginning-of-line)
-        (delete-horizontal-space)
-        (insert "a")
-        (delete-horizontal-space)
-        (beginning-of-line)
-        (mweb-update-context)
-        (indent-according-to-mode)
-        (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))
-        (delete-char 1))))
+              (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))))
+        ;; Close tag indentation routine
+        (let ((open-tag-indentation 0))
+          (save-excursion
+            (mweb-goto-current-mode-open-tag)
+            (setq open-tag-indentation (current-indentation)))
+          (beginning-of-line)
+          (delete-horizontal-space)
+          (indent-to open-tag-indentation)))
+    ;; Open tag indentation routine
+    (progn
+      (beginning-of-line)
+      (delete-horizontal-space)
+      (insert "a")
+      (delete-horizontal-space)
+      (beginning-of-line)
+      (mweb-update-context)
+      (indent-according-to-mode)
+      (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))
+      (delete-char 1)))
   (when (bolp) (back-to-indentation)))
 
 
@@ -288,11 +287,9 @@ the close tag."
                 (progn
                   (back-to-indentation)
                   (setq result (point)))
-              (while
-                  (progn
-                    (setq result (funcall re-search-func (mweb--tag-get-attr tag type) nil t))
-                    (and (not (equal result nil))
-                         (mweb-point-at-comment)))))))
+              (setq result (funcall re-search-func
+                                    (mweb--tag-get-attr tag type)
+                                    nil t)))))
         (setq index (+ 1 index)))
       result)))
 
@@ -326,16 +323,6 @@ the close tag."
   (setq mweb-default-major-mode major-mode)
   (mweb-change-major-mode)
   (message "mweb-default-major-mode = %s" mweb-default-major-mode))
-
-
-(defun mweb-point-at-comment ()
-  "Returns if the point is in a comment. To test this we check if
-the face-at-point is equal to 'font-lock-comment-face"
-  (interactive)
-  (let ((point (point-marker)))
-    (if (equal (face-at-point) 'font-lock-comment-face)
-        t
-      nil)))
 
 
 (defun mweb-forward-nonblank-line (&optional number)
@@ -452,8 +439,8 @@ Possible values of TYPE are:
 
 (defun multi-web-mode-maybe ()
   "Used to turn on the globalized minor mode."
-  (when (member 
-         (file-name-extension (or buffer-file-name "")) 
+  (when (member
+         (file-name-extension (or buffer-file-name ""))
          mweb-filename-extensions)
     (multi-web-mode 1)))
 
