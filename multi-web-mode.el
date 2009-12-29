@@ -375,10 +375,10 @@ Possible values of TYPE are:
 
 (defun mweb-post-command-hook ()
   "The function which is appended to the `post-command-hook'"
-  (when multi-web-mode
-    (when (and (not (region-active-p))
-               (not (member last-command mweb-ignored-commands)))
-      (mweb-update-context))))
+  (when (and multi-web-mode
+             (not (region-active-p))
+             (not (member last-command mweb-ignored-commands)))
+  (mweb-update-context)))
 
 (defun mweb-enable ()
   "Initializes the minor mode"
