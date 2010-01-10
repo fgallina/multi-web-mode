@@ -65,7 +65,7 @@ auto-activate."
   '((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
     (espresso-mode
      "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>"
-     "</script>" '(css-mode))
+     "</script>")
     (css-mode "<style +type=\"text/css\"[^>]*>" "</style>"))
   "Tags enabled for multi-web-mode. This var is an alist on which
 each element has the form \(major-mode \"open tag regex\" \"close tag
