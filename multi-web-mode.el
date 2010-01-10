@@ -38,6 +38,7 @@
   (let ((mweb-mode-map (make-sparse-keymap)))
     (define-key mweb-mode-map (kbd "M-<f11>") 'mweb-set-default-major-mode)
     (define-key mweb-mode-map (kbd "M-<f12>") 'mweb-set-extra-indentation)
+    (define-key mweb-mode-map [remap mark-whole-buffer] 'mweb-mark-whole-buffer)
     mweb-mode-map)
   "Keymaps for multi-web-mode.")
 
@@ -61,14 +62,15 @@ auto-activate."
   :group 'multi-web-mode)
 
 (defcustom mweb-tags
-  '(("<\\?php\\|<\\? \\|<\\?=" "\\?>" php-mode)
-    ("<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>"
-     "</script>" espresso-mode)
-    ("<style +type=\"text/css\"[^>]*>" "</style>" css-mode))
+  '((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
+    (espresso-mode
+     "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>"
+     "</script>" '(css-mode))
+    (css-mode "<style +type=\"text/css\"[^>]*>" "</style>"))
   "Tags enabled for multi-web-mode. This var is an alist on which
-each element has the form (\"open tag regex\" \"close tag
-regex\" major-mode."
-  :type '(repeat (string string symbol))
+each element has the form \(major-mode \"open tag regex\" \"close tag
+regex\")."
+  :type '(repeat (symbol string string))
   :group 'multi-web-mode)
 
 (defcustom mweb-submode-indent-offset 2
@@ -89,22 +91,19 @@ the major mode."
   :type '(repeat symbol)
   :group 'multi-web-mode)
 
-(defun mweb-tag-get-attr (tag attribute)
+(defun mweb-get-tag-attr (tag attribute)
   "Gets ATTRIBUTE from TAG.
 
 ATTRIBUTE values can be 'mode to get the tag's major mode or
 'open/'close to get the open/close regexp respectively."
   (case attribute
-    ('open (car tag))
-    ('close (cadr tag))
-    ('mode (caddr tag))))
+    ('mode (car tag))
+    ('open (cadr tag))
+    ('close (caddr tag))))
 
 (defun mweb-get-tag (tag-major-mode)
   "Returns a tag from `mweb-tags' matching MAJOR-MODE."
-  (catch 'break
-    (dolist (tag mweb-tags)
-      (when (equal (mweb-tag-get-attr tag 'mode) tag-major-mode)
-        (throw 'break tag)))))
+  (assoc tag-major-mode mweb-tags))
 
 (defun mweb-change-major-mode ()
   "Calls the appropiate major mode for the pointed chunk. If the
@@ -121,7 +120,7 @@ returns a symbol with its name."
         (when (and (integerp result)
                    (<= closest-chunk-point result))
           (setq closest-chunk-point result)
-          (setq closest-chunk-mode (mweb-tag-get-attr tag 'mode)))))
+          (setq closest-chunk-mode (mweb-get-tag-attr tag 'mode)))))
     (when (not (equal closest-chunk-mode major-mode))
       (funcall closest-chunk-mode)
       closest-chunk-mode)))
@@ -139,9 +138,9 @@ found then it returns nil."
   (let ((open-tag)
         (close-tag))
     (save-excursion
-      (setq open-tag (re-search-backward (mweb-tag-get-attr tag 'open) nil t)))
+      (setq open-tag (re-search-backward (mweb-get-tag-attr tag 'open) nil t)))
     (save-excursion
-      (setq close-tag (re-search-backward (mweb-tag-get-attr tag 'close) nil t)))
+      (setq close-tag (re-search-backward (mweb-get-tag-attr tag 'close) nil t)))
     (cond ((not open-tag)
            nil)
           ((and open-tag
@@ -184,6 +183,14 @@ previous submode."
     (funcall changed-major-mode)
     (set-buffer-modified-p buffer-modified-flag)
     indentation))
+
+(defun mweb-mark-whole-buffer ()
+  "Multi-web-mode's version of `mark-whole-buffer'"
+  (interactive)
+  (push-mark (point))
+  (goto-char (point-min))
+  (mweb-change-major-mode)
+  (push-mark (point-max) nil t))
 
 (defun mweb-indent-line ()
   "Function to use when indenting a submode line."
@@ -258,16 +265,16 @@ the close tag."
       (while (and (< index (length mweb-tags))
                   (not found))
         (setq tag (elt mweb-tags index))
-        (when (or (equal (mweb-tag-get-attr tag 'mode) major-mode)
+        (when (or (equal (mweb-get-tag-attr tag 'mode) major-mode)
                   (equal major-mode mweb-default-major-mode))
           (setq found t)
           (save-excursion
-            (if (looking-at (mweb-tag-get-attr tag type))
+            (if (looking-at (mweb-get-tag-attr tag type))
                 (progn
                   (back-to-indentation)
                   (setq result (point)))
               (setq result (funcall re-search-func
-                                    (mweb-tag-get-attr tag type)
+                                    (mweb-get-tag-attr tag type)
                                     nil t)))))
         (setq index (+ 1 index)))
       result)))
@@ -350,8 +357,8 @@ Possible values of TYPE are:
       (back-to-indentation)
       (while (and (< index (length mweb-tags))
                   (not looking))
-        (setq open-tag (mweb-tag-get-attr (elt mweb-tags index) 'open))
-        (setq close-tag (mweb-tag-get-attr (elt mweb-tags index) 'close))
+        (setq open-tag (mweb-get-tag-attr (elt mweb-tags index) 'open))
+        (setq close-tag (mweb-get-tag-attr (elt mweb-tags index) 'close))
         (case type
           ('nil (setq tag-regexp (concat open-tag "\\|" close-tag)))
           ('open (setq tag-regexp open-tag))
@@ -378,7 +385,7 @@ Possible values of TYPE are:
   (when (and multi-web-mode
              (not (region-active-p))
              (not (member last-command mweb-ignored-commands)))
-  (mweb-update-context)))
+    (mweb-update-context)))
 
 (defun mweb-enable ()
   "Initializes the minor mode"
@@ -398,7 +405,7 @@ Possible values of TYPE are:
 ;;;###autoload
 (define-minor-mode multi-web-mode
   "Enables the multi web mode chunk detection and indentation"
-  :lighter " Multi-Web" :group 'convenience  
+  :lighter " Multi-Web" :group 'convenience
   (if multi-web-mode
       (mweb-enable)
     (mweb-disable)))
