@@ -55,21 +55,33 @@ the major mode has changed.")
   :group 'multi-web-mode)
 
 (defcustom mweb-filename-extensions
-  '("php" "htm" "html" "ctp" "phtml" "php4" "php5")
+  nil
   "Filename extensions on which multi-web-mode should
-auto-activate."
+auto-activate.
+
+This is an example configuration:
+
+'(\"php\" \"htm\" \"html\" \"ctp\" \"phtml\" \"php4\" \"php5\")"
   :type '(list string)
   :group 'multi-web-mode)
 
+;; What you read in the docstring translates to:
+;; ((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
+;;  (espresso-mode "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
+;;  (css-mode "<style +type=\"text/css\"[^>]*>" "</style>"))
 (defcustom mweb-tags
-  '((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
-    (espresso-mode
-     "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>"
-     "</script>")
-    (css-mode "<style +type=\"text/css\"[^>]*>" "</style>"))
+  nil
   "Tags enabled for multi-web-mode. This var is an alist on which
 each element has the form \(major-mode \"open tag regex\" \"close tag
-regex\")."
+regex\").
+
+This is an example configuration:
+
+\(\(php-mode \"<\\\\?php\\|<\\\\? \\|<\\\\?=\" \"\\\\?>\")
+ \(espresso-mode
+ \"<script +\\\\(type=\\\"text/javascript\\\"\\\\|language=\\\"javascript\\\"\\\\)[^>]*>\"
+ \"</script>\")
+ \(css-mode \"<style +type=\\\"text/css\\\"[^>]*>\" \"</style>\"))"
   :type '(repeat (symbol string string))
   :group 'multi-web-mode)
 
