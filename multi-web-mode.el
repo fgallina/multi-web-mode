@@ -49,7 +49,7 @@
   "Extra indentation for chunks, automatically calculated when
 the major mode has changed.")
 
-(defcustom mweb-default-major-mode 'html-mode
+(defcustom mweb-default-major-mode nil
   "Default major mode when not in chunk."
   :type 'symbol
   :group 'multi-web-mode)
