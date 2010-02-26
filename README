@@ -30,6 +30,11 @@ This package contains multi-web-mode.
    track new versions for everything and because it favoured the user
    lazyness to check the basic configuration :).
 
+   The last multi-web-mode release which contained all packages was
+   0.2.1. It is still available from here:
+
+      * http://github.com/fgallina/multi-web-mode/tree/0.2.1
+
 2. Requirements
 
    You don't need any special libraries to run this package. Just the
