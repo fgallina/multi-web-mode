@@ -161,6 +161,19 @@ found then it returns nil."
           ((> open-tag close-tag)
            open-tag))))
 
+(defun mweb-multiple-chunks-p ()
+  "Checks if multiple chunks exist in the current buffer."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (beginning-of-buffer)
+      (re-search-forward "[^\s\t\n]" nil t)
+      (or (not (mweb-looking-at-open-tag-p))
+	  (catch 'break
+	    (dolist (tag mweb-tags)
+	      (when (re-search-forward (mweb-get-tag-attr tag 'close) nil t)
+		(throw 'break (not (not (re-search-forward "[^\s\t\n]" nil t)))))))))))
+
 (defun mweb-update-context ()
   "This function takes care of updating the extra indentation for
 chunks."
@@ -180,20 +193,21 @@ previous submode."
         (buffer-modified-flag (buffer-modified-p)))
     (save-excursion
       (mweb-goto-current-mode-open-tag)
-      (if (bobp)
-          (setq indentation 0)
-        (forward-line -1)
-        (end-of-line)
-        (insert "\n")
-        (insert "a")
-        (mweb-change-major-mode)
-        (indent-according-to-mode)
-        (setq indentation (current-indentation))
-        (end-of-line)
-        (setq eol (point-marker))
-        (beginning-of-line)
-        (delete-region (point-marker) eol)
-        (delete-backward-char 1)))
+      (if (progn (mweb-forward-nonblank-line -1) (bobp))
+	  (if (mweb-multiple-chunks-p)
+	      (setq indentation 0)
+	    (setq indentation (- mweb-submode-indent-offset)))
+	(end-of-line)
+	(insert "\n")
+	(insert "a")
+	(mweb-change-major-mode)
+	(indent-according-to-mode)
+	(setq indentation (current-indentation))
+	(end-of-line)
+	(setq eol (point-marker))
+	(beginning-of-line)
+	(delete-region (point-marker) eol)
+	(delete-backward-char 1)))
     (funcall changed-major-mode)
     (set-buffer-modified-p buffer-modified-flag)
     indentation))
@@ -219,8 +233,9 @@ previous submode."
             (save-excursion
               (beginning-of-line)
               (delete-horizontal-space)
-              (indent-according-to-mode)
-              (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))))
+	      (unless (bobp)
+		(indent-according-to-mode)
+		(indent-to (+ mweb-extra-indentation mweb-submode-indent-offset)))))
         ;; Close tag indentation routine
         (let ((open-tag-indentation 0))
           (save-excursion
@@ -259,7 +274,9 @@ which are not for the default major mode."
       (or (bolp) (forward-line 1))
       (while (< (point) end)
         (mweb-update-context)
-        (mweb-indent-line)
+	(if (equal major-mode mweb-default-major-mode)
+	    (indent-according-to-mode)
+	  (mweb-indent-line))
         (forward-line 1))
       (move-marker end nil))))
 
@@ -333,7 +350,7 @@ it moves backwards."
     (setq number -1))
   (forward-line number)
   (while (and (equal (mweb-get-current-line-trimmed-contents) "")
-              (not (eobp)))
+              (not (or (bobp) (eobp))))
     (forward-line number)))
 
 (defun mweb-get-current-line-trimmed-contents ()
