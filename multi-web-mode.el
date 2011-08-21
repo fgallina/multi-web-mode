@@ -52,7 +52,8 @@ the major mode has changed.")
 (defcustom mweb-default-major-mode nil
   "Default major mode when not in chunk."
   :type 'symbol
-  :group 'multi-web-mode)
+  :group 'multi-web-mode
+  :safe 'symbolp)
 
 (defcustom mweb-filename-extensions
   nil
@@ -63,7 +64,12 @@ This is an example configuration:
 
 '(\"php\" \"htm\" \"html\" \"ctp\" \"phtml\" \"php4\" \"php5\")"
   :type '(list string)
-  :group 'multi-web-mode)
+  :group 'multi-web-mode
+  :safe #'(lambda (extensions)
+            (not (catch 'fail
+                   (dolist (ext extensions)
+                     (when (not (stringp ext))
+                       (throw 'fail t)))))))
 
 ;; What you read in the docstring translates to:
 ;; ((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
@@ -83,12 +89,21 @@ This is an example configuration:
  \"</script>\")
  \(css-mode \"<style +type=\\\"text/css\\\"[^>]*>\" \"</style>\"))"
   :type '(repeat (symbol string string))
-  :group 'multi-web-mode)
+  :group 'multi-web-mode
+  :safe #'(lambda (tags)
+            (not (catch 'fail
+                   (dolist (tag tags)
+                     (when (or
+                            (not (symbolp (mweb-get-tag-attr tag 'mode)))
+                            (not (stringp (mweb-get-tag-attr tag 'open)))
+                            (not (stringp (mweb-get-tag-attr tag 'close))))
+                       (throw 'fail t)))))))
 
 (defcustom mweb-submode-indent-offset 2
   "Indentation offset for code inside chunks."
   :type 'integer
-  :group 'multi-web-mode)
+  :group 'multi-web-mode
+  :safe 'integerp)
 
 (defcustom mweb-ignored-commands
   (list
@@ -101,7 +116,12 @@ This is an example configuration:
   "List of commands that will prevent multi-web-mode to change
 the major mode."
   :type '(repeat symbol)
-  :group 'multi-web-mode)
+  :group 'multi-web-mode
+  :safe #'(lambda (names)
+            (not (catch 'fail
+                   (dolist (name names)
+                     (when (not (symbolp name))
+                       (throw 'fail t)))))))
 
 (defun mweb-get-tag-attr (tag attribute)
   "Gets ATTRIBUTE from TAG.
