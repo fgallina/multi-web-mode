@@ -73,7 +73,7 @@ This is an example configuration:
 
 ;; What you read in the docstring translates to:
 ;; ((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
-;;  (espresso-mode "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
+;;  (js-mode "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
 ;;  (css-mode "<style +type=\"text/css\"[^>]*>" "</style>"))
 (defcustom mweb-tags
   nil
@@ -84,7 +84,7 @@ regex\").
 This is an example configuration:
 
 \(\(php-mode \"<\\\\?php\\|<\\\\? \\|<\\\\?=\" \"\\\\?>\")
- \(espresso-mode
+ \(js-mode
  \"<script +\\\\(type=\\\"text/javascript\\\"\\\\|language=\\\"javascript\\\"\\\\)[^>]*>\"
  \"</script>\")
  \(css-mode \"<style +type=\\\"text/css\\\"[^>]*>\" \"</style>\"))"
