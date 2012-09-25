@@ -140,6 +140,45 @@ ATTRIBUTE values can be 'mode to get the tag's major mode or
   "Returns a tag from `mweb-tags' matching MAJOR-MODE."
   (assoc tag-major-mode mweb-tags))
 
+(defun mweb--looking-at-tag (&optional type)
+  "Returns non-nil if pointer is looking at an open or close tag.
+
+Possible values of TYPE are:
+    * nil: to check if point is looking at an open or close tag.
+    * 'open: to check if point is looking at an open tag
+    * 'close: to check if point is looking at a close tag"
+  (let ((index 0)
+        (looking)
+        (open-tag)
+        (close-tag)
+        (tag-regexp))
+    (save-excursion
+      (back-to-indentation)
+      (while (and (< index (length mweb-tags))
+                  (not looking))
+        (setq open-tag (mweb-get-tag-attr (elt mweb-tags index) 'open))
+        (setq close-tag (mweb-get-tag-attr (elt mweb-tags index) 'close))
+        (case type
+          (open (setq tag-regexp open-tag))
+          (close (setq tag-regexp close-tag))
+          (otherwise (setq tag-regexp (concat open-tag "\\|" close-tag))))
+        (when (looking-at tag-regexp)
+          (setq looking t))
+        (setq index (+ 1 index))))
+    looking))
+
+(defsubst mweb-looking-at-open-tag-p ()
+  "Returns t if point is looking at an open tag"
+  (mweb--looking-at-tag 'open))
+
+(defsubst mweb-looking-at-close-tag-p ()
+  "Returns t if point is looking at a close tag"
+  (mweb--looking-at-tag 'close))
+
+(defsubst mweb-looking-at-tag-p ()
+  "Returns t if point is looking at an open or close tag"
+  (mweb--looking-at-tag))
+
 (defun mweb-change-major-mode ()
   "Calls the appropiate major mode for the pointed chunk. If the
 current major-mode is the correct one it doesn't funcall the
@@ -391,45 +430,6 @@ characters at the beginning and end of the line."
       (when (string-match "^[ \t]*" contents)
         (setq contents (replace-match "" nil nil contents))))
     contents))
-
-(defun mweb--looking-at-tag (&optional type)
-  "Returns non-nil if pointer is looking at an open or close tag.
-
-Possible values of TYPE are:
-    * nil: to check if point is looking at an open or close tag.
-    * 'open: to check if point is looking at an open tag
-    * 'close: to check if point is looking at a close tag"
-  (let ((index 0)
-        (looking)
-        (open-tag)
-        (close-tag)
-        (tag-regexp))
-    (save-excursion
-      (back-to-indentation)
-      (while (and (< index (length mweb-tags))
-                  (not looking))
-        (setq open-tag (mweb-get-tag-attr (elt mweb-tags index) 'open))
-        (setq close-tag (mweb-get-tag-attr (elt mweb-tags index) 'close))
-        (case type
-          (open (setq tag-regexp open-tag))
-          (close (setq tag-regexp close-tag))
-          (otherwise (setq tag-regexp (concat open-tag "\\|" close-tag))))
-        (when (looking-at tag-regexp)
-          (setq looking t))
-        (setq index (+ 1 index))))
-    looking))
-
-(defsubst mweb-looking-at-open-tag-p ()
-  "Returns t if point is looking at an open tag"
-  (mweb--looking-at-tag 'open))
-
-(defsubst mweb-looking-at-close-tag-p ()
-  "Returns t if point is looking at a close tag"
-  (mweb--looking-at-tag 'close))
-
-(defsubst mweb-looking-at-tag-p ()
-  "Returns t if point is looking at an open or close tag"
-  (mweb--looking-at-tag))
 
 (defun mweb-post-command-hook ()
   "The function which is appended to the `post-command-hook'"
