@@ -35,7 +35,8 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+  (defvar multi-web-mode))
 
 (defvar mweb-mode-map
   (let ((mweb-mode-map (make-sparse-keymap)))
