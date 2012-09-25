@@ -208,7 +208,7 @@ chunks."
   "Calculates the correct indentation taking into account the
 previous submode."
   (let ((indentation 0)
-        (eol)
+        (prev-line-pos)
         (changed-major-mode major-mode)
         (buffer-modified-flag (buffer-modified-p)))
     (save-restriction
@@ -220,16 +220,12 @@ previous submode."
                 (setq indentation 0)
               (setq indentation (- mweb-submode-indent-offset)))
           (end-of-line)
-          (insert "\n")
-          (insert "a")
+          (setq prev-line-pos (point-marker))
+          (insert "\na")
           (mweb-change-major-mode)
           (indent-according-to-mode)
           (setq indentation (current-indentation))
-          (end-of-line)
-          (setq eol (point-marker))
-          (beginning-of-line)
-          (delete-region (point-marker) eol)
-          (delete-backward-char 1)))
+          (delete-region prev-line-pos (line-end-position))))
       (funcall changed-major-mode)
       (set-buffer-modified-p buffer-modified-flag)
       indentation)))
@@ -245,7 +241,7 @@ previous submode."
 (defun mweb-indent-line ()
   "Function to use when indenting a submode line."
   (interactive)
-  ;; Yes, indent according to mode will do what we spect
+  ;; Yes, indent according to mode will do what we expect
   (setq mweb-extra-indentation (mweb-calculate-indentation))
   (if (not (mweb-looking-at-open-tag-p))
       (if (not (mweb-looking-at-close-tag-p))
@@ -267,17 +263,16 @@ previous submode."
           (delete-horizontal-space)
           (indent-to open-tag-indentation)))
     ;; Open tag indentation routine
-    (progn
-      (beginning-of-line)
-      (delete-horizontal-space)
-      (insert "b")
-      (delete-horizontal-space)
-      (beginning-of-line)
-      (mweb-update-context)
-      (indent-according-to-mode)
-      (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))
-      (delete-char 1)))
-  (when (bolp) (back-to-indentation)))
+    (beginning-of-line)
+    (delete-horizontal-space)
+    (insert "a")
+    (delete-horizontal-space)
+    (beginning-of-line)
+    (mweb-update-context)
+    (indent-according-to-mode)
+    (indent-to (+ mweb-extra-indentation mweb-submode-indent-offset))
+    (delete-char 1))
+  (and (bolp) (back-to-indentation)))
 
 (defun mweb-indent-region (start end)
   "Indents a region taking into account the relative position of
@@ -287,7 +282,8 @@ It follows the same filosophy than `mweb-indent-line-forward'
 because that function is what is used to indent the chunks
 which are not for the default major mode."
   (interactive "r")
-  (let ((line-end))
+  (let ((delete-active-region nil)
+        (line-end))
     (save-excursion
       (goto-char end)
       (setq end (point-marker))
