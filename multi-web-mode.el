@@ -395,8 +395,7 @@ characters at the beginning and end of the line."
 Possible values of TYPE are:
     * nil: to check if point is looking at an open or close tag.
     * 'open: to check if point is looking at an open tag
-    * 'close: to check if point is looking at a close tag
-"
+    * 'close: to check if point is looking at a close tag"
   (let ((index 0)
         (looking)
         (open-tag)
@@ -409,9 +408,9 @@ Possible values of TYPE are:
         (setq open-tag (mweb-get-tag-attr (elt mweb-tags index) 'open))
         (setq close-tag (mweb-get-tag-attr (elt mweb-tags index) 'close))
         (case type
-          (nil (setq tag-regexp (concat open-tag "\\|" close-tag)))
           (open (setq tag-regexp open-tag))
-          (close (setq tag-regexp close-tag)))
+          (close (setq tag-regexp close-tag))
+          (otherwise (setq tag-regexp (concat open-tag "\\|" close-tag))))
         (when (looking-at tag-regexp)
           (setq looking t))
         (setq index (+ 1 index))))
