@@ -25,7 +25,7 @@
 
 ;; Multi Web Mode is a minor mode wich makes web editing in Emacs much easier.
 
-;; Basically what it does is select the appropiate major mode
+;; Basically what it does is select the appropriate major mode
 ;; automatically when you move the point and also calculates the
 ;; correct indentation of chunks according to the indentation of the
 ;; most relevant major mode.
@@ -44,14 +44,14 @@
     (define-key mweb-mode-map (kbd "M-<f12>") 'mweb-set-extra-indentation)
     (define-key mweb-mode-map [remap mark-whole-buffer] 'mweb-mark-whole-buffer)
     mweb-mode-map)
-  "Keymaps for multi-web-mode.")
+  "Keymaps for command `multi-web-mode'.")
 
 (defvar mweb-mode-hook nil
-  "Hooks to run when multi-web-mode is initialized.")
+  "Hooks to run when command `multi-web-mode' is initialized.")
 
 (defvar mweb-extra-indentation 0
-  "Extra indentation for chunks, automatically calculated when
-the major mode has changed.")
+  "Extra indentation for chunks.
+Automatically calculated when the major mode has changed.")
 
 (defcustom mweb-default-major-mode nil
   "Default major mode when not in chunk."
@@ -61,11 +61,9 @@ the major mode has changed.")
 
 (defcustom mweb-filename-extensions
   nil
-  "Filename extensions on which multi-web-mode should
-auto-activate.
+  "File extensions that trigger activation.
 
 This is an example configuration:
-
 '(\"php\" \"htm\" \"html\" \"ctp\" \"phtml\" \"php4\" \"php5\")"
   :type '(list string)
   :group 'multi-web-mode
@@ -81,15 +79,16 @@ This is an example configuration:
 ;;  (css-mode "<style +type=\"text/css\"[^>]*>" "</style>"))
 (defcustom mweb-tags
   nil
-  "Tags enabled for multi-web-mode. This var is an alist on which
-each element has the form \(major-mode \"open tag regex\" \"close tag
-regex\").
+  "Tags enabled for command `multi-web-mode'.
+This var is an alist on which each element has the form
+\(major-mode \"open tag regex\" \"close tag regex\").
 
 This is an example configuration:
 
 \(\(php-mode \"<\\\\?php\\|<\\\\? \\|<\\\\?=\" \"\\\\?>\")
  \(js-mode
- \"<script +\\\\(type=\\\"text/javascript\\\"\\\\|language=\\\"javascript\\\"\\\\)[^>]*>\"
+ \"<script +\\\\(type=\\\"text/javascript\\\"\\\\
+|language=\\\"javascript\\\"\\\\)[^>]*>\"
  \"</script>\")
  \(css-mode \"<style +type=\\\"text/css\\\"[^>]*>\" \"</style>\"))"
   :type '(repeat (symbol string string))
@@ -117,8 +116,7 @@ This is an example configuration:
    'isearch-forward
    'isearch-backward
    'isearch-other-control-char)
-  "List of commands that will prevent multi-web-mode to change
-the major mode."
+  "Commands that prevent changing the major mode."
   :type '(repeat symbol)
   :group 'multi-web-mode
   :safe #'(lambda (names)
@@ -128,8 +126,7 @@ the major mode."
                        (throw 'fail t)))))))
 
 (defun mweb-get-tag-attr (tag attribute)
-  "Gets ATTRIBUTE from TAG.
-
+  "Get TAG ATTRIBUTE.
 ATTRIBUTE values can be 'mode to get the tag's major mode or
 'open/'close to get the open/close regexp respectively."
   (case attribute
@@ -138,11 +135,11 @@ ATTRIBUTE values can be 'mode to get the tag's major mode or
     (close (caddr tag))))
 
 (defun mweb-get-tag (tag-major-mode)
-  "Returns a tag from `mweb-tags' matching MAJOR-MODE."
+  "Return tag from `mweb-tags' matching TAG-MAJOR-MODE."
   (assoc tag-major-mode mweb-tags))
 
 (defun mweb--looking-at-tag (&optional type)
-  "Returns non-nil if pointer is looking at an open or close tag.
+  "Return non-nil if pointer is looking at an open or close tag.
 
 Possible values of TYPE are:
     * nil: to check if point is looking at an open or close tag.
@@ -169,21 +166,21 @@ Possible values of TYPE are:
     looking))
 
 (defsubst mweb-looking-at-open-tag-p ()
-  "Returns t if point is looking at an open tag"
+  "Return t if point is looking at an open tag."
   (mweb--looking-at-tag 'open))
 
 (defsubst mweb-looking-at-close-tag-p ()
-  "Returns t if point is looking at a close tag"
+  "Return t if point is looking at a close tag."
   (mweb--looking-at-tag 'close))
 
 (defsubst mweb-looking-at-tag-p ()
-  "Returns t if point is looking at an open or close tag"
+  "Return t if point is looking at an open or close tag."
   (mweb--looking-at-tag))
 
 (defun mweb-change-major-mode ()
-  "Calls the appropiate major mode for the pointed chunk. If the
-current major-mode is the correct one it doesn't funcall the
-major mode and returns nil, otherwise changes the major-mode and
+  "Call the appropriate major mode for the pointed chunk.
+If the current `major-mode' is the correct one it doesn't funcall the
+major mode and returns nil, otherwise changes the `major-mode' and
 returns a symbol with its name."
   (let ((closest-chunk-point 0)
         (closest-chunk-mode mweb-default-major-mode)
@@ -201,15 +198,15 @@ returns a symbol with its name."
       closest-chunk-mode)))
 
 (defun mweb-change-indent-line-function ()
-  "Sets the correct value for `indent-line-function' and
-`indent-region-function' depending of `major-mode'."
+  "Set the correct value for `indent-line-function'.
+Depending of `major-mode'."
   (when (not (equal major-mode mweb-default-major-mode))
     (setq indent-line-function 'mweb-indent-line)))
 
 (defun mweb-closest-starting-chunk-point (tag)
-  "Returns the point of the closest chunk for TAG which is one of
-the tag contained in the `mweb-tags' list. If the chunk is not
-found then it returns nil."
+  "Return the point of the closest chunk for TAG.
+Where TAG is one of the tags contained in the `mweb-tags'
+list.  If the chunk is not found then it returns nil."
   (let ((open-tag)
         (close-tag))
     (save-excursion
@@ -225,7 +222,7 @@ found then it returns nil."
            open-tag))))
 
 (defun mweb-multiple-chunks-p ()
-  "Checks if multiple chunks exist in the current buffer."
+  "Check if multiple chunks exist in the current buffer."
   (save-excursion
     (save-restriction
       (widen)
@@ -238,8 +235,7 @@ found then it returns nil."
                 (throw 'break (not (not (re-search-forward "[^\s\t\n]" nil t)))))))))))
 
 (defun mweb-update-context ()
-  "This function takes care of updating the extra indentation for
-chunks."
+  "Update extra indentation value for chunks."
   (let ((changed-major-mode (mweb-change-major-mode)))
     (if (and changed-major-mode
              (not (equal major-mode mweb-default-major-mode)))
@@ -248,8 +244,7 @@ chunks."
   (mweb-change-indent-line-function))
 
 (defun mweb-calculate-indentation ()
-  "Calculates the correct indentation taking into account the
-previous submode."
+  "Calculate the correct indentation given previous submode."
   (let ((indentation 0)
         (prev-line-pos)
         (changed-major-mode major-mode)
@@ -274,7 +269,7 @@ previous submode."
       indentation)))
 
 (defun mweb-mark-whole-buffer ()
-  "Multi-web-mode's version of `mark-whole-buffer'"
+  "Multi-web-mode's version of `mark-whole-buffer'."
   (interactive)
   (push-mark (point))
   (goto-char (point-min))
@@ -318,12 +313,12 @@ previous submode."
   (and (bolp) (back-to-indentation)))
 
 (defun mweb-indent-region (start end)
-  "Indents a region taking into account the relative position of
-the chunks within the buffer.
-
-It follows the same filosophy than `mweb-indent-line-forward'
-because that function is what is used to indent the chunks
-which are not for the default major mode."
+  "Indent a region taking care of chunks.
+This routine considers the relative position of the chunks within
+the buffer.  It follows the same filosophy than
+`mweb-indent-line-forward' because that function is what is used
+to indent the chunks which are not for the default major mode.
+Called from a program, START and END specify the region to indent."
   (interactive "r")
   (let ((delete-active-region nil)
         (line-end))
@@ -372,34 +367,34 @@ the close tag."
       result)))
 
 (defun mweb-goto-current-mode-open-tag ()
-  "Moves the point to the open tag of the current chunk"
+  "Move the point to the open tag of the current chunk."
   (interactive)
   (let ((tag-point (mweb-get-current-mode-tag-point 'open)))
     (when tag-point
       (goto-char tag-point))))
 
 (defun mweb-goto-current-mode-close-tag ()
-  "Moves the point to the close tag of the current chunk"
+  "Move the point to the close tag of the current chunk."
   (interactive)
   (let ((tag-point (mweb-get-current-mode-tag-point 'close)))
     (when tag-point
       (goto-char tag-point))))
 
 (defun mweb-set-extra-indentation (number)
-  "Sets the new value for `mweb-extra-indentation' to NUMBER"
+  "Set the new value for `mweb-extra-indentation' to NUMBER."
   (interactive "nNew mweb-extra-indentation value: ")
   (setq mweb-extra-indentation number)
   (message "mweb-extra-indentation = %d" mweb-extra-indentation))
 
 (defun mweb-set-default-major-mode (major-mode)
-  "Sets the new value for `mweb-default-major-mode' to MAJOR-MODE"
+  "Set the new value for `mweb-default-major-mode' to MAJOR-MODE."
   (interactive "CNew default major mode: ")
   (setq mweb-default-major-mode major-mode)
   (mweb-change-major-mode)
   (message "mweb-default-major-mode = %s" mweb-default-major-mode))
 
 (defun mweb-forward-nonblank-line (&optional number)
-  "Moves the cursor to the next/previous non blank line.
+  "Move the cursor to the next/previous non blank line.
 
 When NUMBER is positive it moves forward and when is negative
 it moves backwards."
@@ -415,8 +410,8 @@ it moves backwards."
     (forward-line number)))
 
 (defun mweb-get-current-line-trimmed-contents ()
-  "Gets the contents of the current line. It trims all space
-characters at the beginning and end of the line."
+  "Gets the contents of the current line.
+It trims all space characters at the beginning and end of the line."
   (let ((start-point)
         (end-point)
         (contents))
@@ -433,14 +428,14 @@ characters at the beginning and end of the line."
     contents))
 
 (defun mweb-post-command-hook ()
-  "The function which is appended to the `post-command-hook'"
+  "The function which is appended to the `post-command-hook'."
   (when (and multi-web-mode
              (not (region-active-p))
              (not (member last-command mweb-ignored-commands)))
     (mweb-update-context)))
 
 (defun mweb-enable ()
-  "Initializes the minor mode"
+  "Setup the minor mode."
   (set (make-local-variable 'indent-region-function)
        'mweb-indent-region)
   (make-local-variable 'indent-line-function)
@@ -451,7 +446,7 @@ characters at the beginning and end of the line."
   (run-hooks 'mweb-mode-hook))
 
 (defun mweb-disable ()
-  "Contains the necessary code to disable the minor mode"
+  "Disable the minor mode."
   (assq-delete-all 'multi-web-mode minor-mode-map-alist))
 
 ;;;###autoload

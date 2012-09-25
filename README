@@ -11,24 +11,24 @@ This package contains multi-web-mode.
 
 1. Introduction
 
-   Multi Web Mode is a minor mode wich makes web editing in Emacs much
-   easier.
+   Multi Web Mode is a minor mode which makes web editing in Emacs
+   much easier.
 
-   Basically what it does is select the appropiate major mode
+   Basically what it does is select the appropriate major mode
    automatically when you move the point and also calculates the
    correct indentation of chunks according to the indentation of the
    most relevant major mode.
 
-   Currently it is more focused to work on buffers which contain html,
-   css, javascript and php, but adding other modes is really simple:
-   you just need to add your own mode to the `mweb-tags'. You can do
-   that by using M-x customize-group RET multi-web-mode and looking
-   for the `mweb-tags' variable.
+   Currently it is focused to work on buffers which contain html, css,
+   javascript and/or php, but adding other modes is really simple: you
+   just need to add your own mode to the `mweb-tags'. You can do that
+   by using M-x customize-group RET multi-web-mode and looking for the
+   `mweb-tags' variable.
 
    All third packages were removed from the project repo (they were
    included with mweb previously), mainly because it is difficult to
-   track new versions for everything and because it favoured the user
-   lazyness to check the basic configuration :).
+   track new versions for everything and because it favored the user
+   laziness to check the basic configuration :).
 
    The last multi-web-mode release which contained all packages was
    0.2.1. It is still available from here:
@@ -38,7 +38,7 @@ This package contains multi-web-mode.
 2. Requirements
 
    You don't need any special libraries to run this package. Just the
-   ones you want to integrate with it.
+   ones you want to integrate to it.
 
    Regarding the version of Emacs, this package was tested successfully
    with >= 23.0.60.
