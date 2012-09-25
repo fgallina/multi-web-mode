@@ -191,7 +191,7 @@ found then it returns nil."
       (or (not (mweb-looking-at-open-tag-p))
           (catch 'break
             (dolist (tag mweb-tags)
-              (when (re-searcah-forward (mweb-get-tag-attr tag 'close) nil t)
+              (when (re-search-forward (mweb-get-tag-attr tag 'close) nil t)
                 (throw 'break (not (not (re-search-forward "[^\s\t\n]" nil t)))))))))))
 
 (defun mweb-update-context ()
