@@ -129,9 +129,9 @@ the major mode."
 ATTRIBUTE values can be 'mode to get the tag's major mode or
 'open/'close to get the open/close regexp respectively."
   (case attribute
-    ('mode (car tag))
-    ('open (cadr tag))
-    ('close (caddr tag))))
+    (mode (car tag))
+    (open (cadr tag))
+    (close (caddr tag))))
 
 (defun mweb-get-tag (tag-major-mode)
   "Returns a tag from `mweb-tags' matching MAJOR-MODE."
@@ -413,9 +413,9 @@ Possible values of TYPE are:
         (setq open-tag (mweb-get-tag-attr (elt mweb-tags index) 'open))
         (setq close-tag (mweb-get-tag-attr (elt mweb-tags index) 'close))
         (case type
-          ('nil (setq tag-regexp (concat open-tag "\\|" close-tag)))
-          ('open (setq tag-regexp open-tag))
-          ('close (setq tag-regexp close-tag)))
+          (nil (setq tag-regexp (concat open-tag "\\|" close-tag)))
+          (open (setq tag-regexp open-tag))
+          (close (setq tag-regexp close-tag)))
         (when (looking-at tag-regexp)
           (setq looking t))
         (setq index (+ 1 index))))
