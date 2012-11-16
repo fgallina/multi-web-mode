@@ -1,9 +1,11 @@
 ;;; multi-web-mode.el --- multiple major mode support for web editing
 
-;; Copyright (C) 2009 Fabián Ezequiel Gallina.
+;; Copyright (C) 2012 Fabián Ezequiel Gallina.
 
-;; Author: Fabián Ezequiel Gallina <fabian@gnu.org.ar>
-;; Maintainer: Fabián Ezequiel Gallina <fabian@gnu.org.ar>
+;; Author: Fabián E. Gallina <fabian@anue.biz>
+;; URL: https://github.com/fgallina/multi-web-mode.el
+;; Version: 0.1
+;; Created: Feb 2009
 ;; Keywords: convenience, languages, wp
 
 ;; This file is part of Multi Web Mode
