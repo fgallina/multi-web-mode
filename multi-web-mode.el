@@ -3,7 +3,7 @@
 ;; Copyright (C) 2012 Fabián Ezequiel Gallina.
 
 ;; Author: Fabián E. Gallina <fabian@anue.biz>
-;; URL: https://github.com/fgallina/multi-web-mode.el
+;; URL: https://github.com/fgallina/multi-web-mode
 ;; Version: 0.1
 ;; Created: Feb 2009
 ;; Keywords: convenience, languages, wp
