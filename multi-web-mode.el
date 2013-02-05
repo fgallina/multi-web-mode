@@ -75,10 +75,6 @@ This is an example configuration:
                      (when (not (stringp ext))
                        (throw 'fail t)))))))
 
-;; What you read in the docstring translates to:
-;; ((php-mode "<\\?php\\|<\\? \\|<\\?=" "\\?>")
-;;  (js-mode "<script +\\(type=\"text/javascript\"\\|language=\"javascript\"\\)[^>]*>" "</script>")
-;;  (css-mode "<style +type=\"text/css\"[^>]*>" "</style>"))
 (defcustom mweb-tags
   nil
   "Tags enabled for command `multi-web-mode'.
@@ -88,11 +84,8 @@ This var is an alist on which each element has the form
 This is an example configuration:
 
 \(\(php-mode \"<\\\\?php\\|<\\\\? \\|<\\\\?=\" \"\\\\?>\")
- \(js-mode
- \"<script +\\\\(type=\\\"text/javascript\\\"\\\\
-|language=\\\"javascript\\\"\\\\)[^>]*>\"
- \"</script>\")
- \(css-mode \"<style +type=\\\"text/css\\\"[^>]*>\" \"</style>\"))"
+ \(js-mode \"<script[^>]*>\" \"</script>\")
+ \(css-mode \"<style[^>]*>\" \"</style>\"))"
   :type '(repeat (symbol string string))
   :group 'multi-web-mode
   :safe #'(lambda (tags)
