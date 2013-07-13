@@ -38,6 +38,29 @@ The last multi-web-mode release which contained all packages was
 
 + http://github.com/fgallina/multi-web-mode/tree/0.2.1
 
+## Why?
+
+At the time I created multi-web-mode I had tried several of the
+existing stuff that was available, but then I settled with MuMaMo
+(from the nXhtml package) which I found pretty cool; although I was
+having some problems with it, like: slow parsing, erroneus indentation
+and hangs.
+
+When I tried to look at its code to solve some of this stuff I found
+it really difficult for me to follow. That convinced me to try to
+write the simplest working version of a package that does multiple
+major mode support, therefore multi-web-mode was born.
+
+This was a long time ago, and I'm not sure how other packages
+progressed but I think the key feature of multi-web-mode is the
+simplicity with which detects the current chunk and indentation
+(although the code it's not pretty, it was one of my first Emacs Lisp
+packages and never got cleaned up properly :-). Another thing I
+consider a feature is that multi-web-mode only focuses on 3 things:
+detecting the chunk, activating the proper major mode and calculating
+the indentation for it. It lets *unmodified* major and minor modes to
+do its job without stepping in the middle.
+
 ## Requirements
 
 You don't need any special libraries to run this package. Just the
