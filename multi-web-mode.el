@@ -459,6 +459,7 @@ It trims all space characters at the beginning and end of the line."
          mweb-filename-extensions)
     (multi-web-mode 1)))
 
+;;;###autoload
 (define-globalized-minor-mode multi-web-global-mode
   multi-web-mode multi-web-mode-maybe
   :group 'multi-web-mode
