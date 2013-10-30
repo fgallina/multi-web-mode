@@ -67,7 +67,7 @@ Automatically calculated when the major mode has changed.")
 
 This is an example configuration:
 '(\"php\" \"htm\" \"html\" \"ctp\" \"phtml\" \"php4\" \"php5\")"
-  :type '(list string)
+  :type '(repeat string)
   :group 'multi-web-mode
   :safe #'(lambda (extensions)
             (not (catch 'fail
@@ -86,7 +86,7 @@ This is an example configuration:
 \(\(php-mode \"<\\\\?php\\|<\\\\? \\|<\\\\?=\" \"\\\\?>\")
  \(js-mode \"<script[^>]*>\" \"</script>\")
  \(css-mode \"<style[^>]*>\" \"</style>\"))"
-  :type '(repeat (symbol string string))
+  :type '(repeat (list symbol string string))
   :group 'multi-web-mode
   :safe #'(lambda (tags)
             (not (catch 'fail
