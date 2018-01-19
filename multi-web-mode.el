@@ -431,14 +431,18 @@ It trims all space characters at the beginning and end of the line."
 
 (defun mweb-enable ()
   "Setup the minor mode."
-  (set (make-local-variable 'indent-region-function)
-       'mweb-indent-region)
-  (make-local-variable 'indent-line-function)
-  (add-hook 'post-command-hook 'mweb-post-command-hook)
-  (assq-delete-all 'multi-web-mode minor-mode-map-alist)
-  (push (cons 'multi-web-mode mweb-mode-map)
-        minor-mode-map-alist)
-  (run-hooks 'mweb-mode-hook))
+  (cond ((not mweb-default-major-mode)
+         (multi-web-mode -1)
+         (error "please define mweb-default-major-mode before using multi-web-mode"))
+        (t
+         (set (make-local-variable 'indent-region-function)
+              'mweb-indent-region)
+         (make-local-variable 'indent-line-function)
+         (add-hook 'post-command-hook 'mweb-post-command-hook)
+         (assq-delete-all 'multi-web-mode minor-mode-map-alist)
+         (push (cons 'multi-web-mode mweb-mode-map)
+               minor-mode-map-alist)
+         (run-hooks 'mweb-mode-hook))))
 
 (defun mweb-disable ()
   "Disable the minor mode."
